@@ -95,6 +95,8 @@ Rows first. Three columns.
 
 #### Better frequency counts:
 
+https://github.com/wizzat/distribution
+
     cat data | distribution.py
 
 #### Histogram of values
