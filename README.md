@@ -76,6 +76,7 @@ $ seq 10 | pr -t -3 -a
 Specify the total width, with a flexible number of columns.
 Fill down columns first.
 
+```
 $ seq 30 | column -c 40
 1       7       13      19      25
 2       8       14      20      26
