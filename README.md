@@ -16,9 +16,9 @@ A cookbook of tools and techniques for processing text and data at the linux com
 
     sort --merge file1 file2 file3
 
-### combine two files:
+### combine multiple files
 
-#### paste: add side by side
+#### paste: add files side by side
 
 ```
 $ seq 1 5 > a
@@ -33,9 +33,27 @@ $ paste a b c
 5    2.0    10
 ```
 
+#### Concatenate files, skipping headers
+
+If you want to join several files, but only keep the headers from the first one,
+there are a few ways to do it.
+
+the csvstack command (csvkit) is ideal if the data is csv.
+
+You can also combine files without headers
+
+    #!/usr/bin/env python
+    from __future__ import print_function
+    import fileinput
+    for line in fileinput.input():
+      if not fileinput.isfirstline() or fileinput.lineno() == 1:
+        print(line, end="")
+
 ### put a sequence of data into columns
 
-Columns first. Three columns
+Note that the -t option is required to skip the unwanted header.
+
+Three columns. Fill across first.
 
 ```
 $ seq 10 | pr -t -3
@@ -45,7 +63,7 @@ $ seq 10 | pr -t -3
 4            8
 ```
 
-Rows first. Three columns.
+Three columns. Fill across first.
 
 ```
 $ seq 10 | pr -t -3 -a
@@ -55,7 +73,35 @@ $ seq 10 | pr -t -3 -a
 10
 ```
 
+Specify the total width, with a flexible number of columns.
+Fill down columns first.
+
+$ seq 30 | column -c 40
+1       7       13      19      25
+2       8       14      20      26
+3       9       15      21      27
+4       10      16      22      28
+5       11      17      23      29
+6       12      18      24      30
+```
+
+Same as above, but fill across first.
+
+```
+$ seq 30 | column -c 40 -x
+1       2       3       4       5
+6       7       8       9       10
+11      12      13      14      15
+16      17      18      19      20
+21      22      23      24      25
+26      27      28      29      30
+```
+
+
 ### making evenly spaced columns from data
+
+Sometime you have unevenly spaced fields (or words), and you'd like to turn it into nice
+white-space separated columns. The column command has a table mode.
  
 ```
 $ cat > txt <<EOF
@@ -71,6 +117,9 @@ jumped  over   the    lazy
 dogs    and    it     was
 so      very,  very   funny
 ```
+
+Fill the rows first
+
 
 #### join: intersect two files
 
@@ -246,9 +295,57 @@ A little perl to duplicate each line from 1 to 3 times.
 
 ## json
 
-- jq
-- jsonpp
+- jq - CLI query language for json. Doesn't handle very large ints.
+- jsonpp, json_pp - pretty printing, 
+- `python -m json.tool` - pretty printing. Doesn't handle json per lin
 
+### jq
+
+Here's some sample json (created using the jo json authoring tool)
+
+    { jo user[name]=jud user[id]=17 ; jo user[name]=joe user[id]=22;} | tee json1
+    {"user":{"name":"jud","id":17}}
+    {"user":{"name":"joe","id":22}}
+
+jq has a fully-featured query language, but since I don't use the more advanced features very often,
+I just remember how to index down into object:
+
+    # extract user.name from every object
+    $ jq .user.name json1
+    "jud"
+    "joe"
+
+    # get the raw (unquoted) values.
+    $ jq -r .user.name json1
+    jud
+    joe
+
+I nearly always use jq for my json needs. However, I've recently been dealing with json that contains very large numeric ids.
+Unfortuntely jq rounds large integers.
+
+
+    $ echo '{"a":11111222223333344444}' | jq .
+    {
+      "a": 11111222223333345000
+    }
+
+    $ echo '{"a":11111222223333344444}' | python -m json.tool
+    {
+        "a": 11111222223333344444
+    }
+
+So I have been using other tools to pretty print json, like jsonpp and/or json_pp.
+
+The python json.tool pretty printer handles big ints, but doesn't handle newline delimited json. I just saw the newlinejson package, which could help.
+Here's a simple python solution:
+
+
+    #!/usr/bin/env python
+    from __future__ import print_function
+    import fileinput
+    import json
+    for line in fileinput.input():
+        print(json.dumps(json.loads(line.rstrip('\r\n')), indent=2))
 
 ## Misc
 
@@ -263,6 +360,23 @@ https://github.com/hjmangalam/scut
 
 do computation and stats on the command line
 
+
+### Progress bars in pipes
+
+Sometimes I am sending a lot of data through a pipeline, and I'd like to have
+an idea of how quickly it is proceeding, or if it's still going at all.
+
+There's a useful command that I discovered for this called pv. `brew install pv` or `apt-get install pv`
+
+    seq 50111222 | pv -lapbet | wc -l
+     23.1M 0:00:07 [3.29M/s] [                  <=>
+
+pv can produce a litle curses progress meter that updates as you go. It has a lot of formatting options,
+including the lines format, the default bytes format, ETA and other goodies.
+
+You can also do a trivial monitor in perl:
+
+  perl -pE'say STDERR $. if $. % 1_000_000 == 0'
 
 ## Generating data
 
@@ -294,3 +408,22 @@ do computation and stats on the command line
 10 random numbers between 0 and 19
 
     perl -E'say int(rand(20)) for 1..10'
+
+#### jot
+
+Generate various sequences and random numbers
+
+10 ints between 0 and 100
+
+    jot -r 10 0 100
+
+5 floats between 0.000 and 1.000
+
+    jot -r 5 0.000 1.000
+
+random letters
+
+    jot -r -c 10 97 122
+
+
+
