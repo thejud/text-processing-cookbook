@@ -21,11 +21,11 @@ A cookbook of tools and techniques for processing text and data at the linux com
 #### paste: add files side by side
 
 ```
-$ seq 1 5 > a
-$ seq -w 0 .5 2 > b
-$ seq 6 10 > c
+seq 1 5 > a
+seq -w 0 .5 2 > b
+seq 6 10 > c
 
-$ paste a b c
+paste a b c
 1    0.0    6
 2    0.5    7
 3    1.0    8
@@ -56,7 +56,7 @@ Note that the -t option is required to skip the unwanted header.
 Three columns. Fill across first.
 
 ```
-$ seq 10 | pr -t -3
+seq 10 | pr -t -3
 1            5            9
 2            6            10
 3            7
@@ -66,7 +66,7 @@ $ seq 10 | pr -t -3
 Three columns. Fill across first.
 
 ```
-$ seq 10 | pr -t -3 -a
+seq 10 | pr -t -3 -a
 1            2            3
 4            5            6
 7            8            9
@@ -77,7 +77,7 @@ Specify the total width, with a flexible number of columns.
 Fill down columns first.
 
 ```
-$ seq 30 | column -c 40
+seq 30 | column -c 40
 1       7       13      19      25
 2       8       14      20      26
 3       9       15      21      27
@@ -89,7 +89,7 @@ $ seq 30 | column -c 40
 Same as above, but fill across first.
 
 ```
-$ seq 30 | column -c 40 -x
+seq 30 | column -c 40 -x
 1       2       3       4       5
 6       7       8       9       10
 11      12      13      14      15
@@ -105,14 +105,14 @@ Sometime you have unevenly spaced fields (or words), and you'd like to turn it i
 white-space separated columns. The column command has a table mode.
  
 ```
-$ cat > txt <<EOF
+cat > txt <<EOF
 the quick brown fox
 jumped over the lazy
 dogs and it was
 so very, very funny
 EOF
 
-$ column -t txt
+column -t txt
 the     quick  brown  fox
 jumped  over   the    lazy
 dogs    and    it     was
@@ -156,7 +156,7 @@ Fill the rows first
 
 https://github.com/wizzat/distribution
 
-    $ cat randwords | perl -ne'$a=$_; print $a for 0..int(rand(25))' | distribution.py
+    cat randwords | perl -ne'$a=$_; print $a for 0..int(rand(25))' | distribution.py
                Key|Ct (Pct)   Histogram
        accelerator|25 (6.05%) ------------------------------------------------------
           absterge|25 (6.05%) ------------------------------------------------------
@@ -183,7 +183,7 @@ https://github.com/bitly/data_hacks
 
 Generate 1000 random values from 0-300 and generate a histogram:
 
-    $ perl -E'say rand(300) for 1..1000' | histogram.py
+    perl -E'say rand(300) for 1..1000' | histogram.py
     # NumSamples = 1000; Min = 0.12; Max = 299.94
     # Mean = 148.416700; Variance = 7602.103173; SD = 87.190041; Median 151.018961
     # each ∎ represents a count of 1
@@ -213,15 +213,33 @@ Cut is quite strict, but useful when you have fixed delimiters, or want to extra
 
 #### Extract by character position
 
-    $ cat > alpha <<EOF
+    cat > alpha <<EOF
     abcdef
     gehijk
     EOF
     
 
-    $ cat alpha | cut -c '2-4,6'
+    cat alpha | cut -c '2-4,6'
     bcdf
     ehik
+
+#### Extract by fields width
+
+Sometimes you will have fields of known (but possibly variable) width:
+
+awk can be used to extract the fields (you may need to install gnu awk)
+
+    echo aaaaBBcccccDe | awk '$1=$1' FIELDWIDTHS='4 2 5 1 1' OFS=, 
+    aaaa,BB,ccccc,D,e
+
+from https://stackoverflow.com/a/28562381
+
+
+#### Convert whitespace columns to csv
+
+    perl -anE'say join(",", @F)'
+
+    perl -anE'say join("\t", @F)' | csvformat -t -h
 
 #### Extract by position with simple delimter
 
@@ -230,13 +248,13 @@ Cut is quite strict, but useful when you have fixed delimiters, or want to extra
     fun:stuff:today
     EOF
 
-    $ cat data | cut -d: -f 1,3
+    cat data | cut -d: -f 1,3
     foo:baz
     fun:today
 
 Note that it apparently ignores order
 
-    $ cat data | cut -d: -f 3,1
+    cat data | cut -d: -f 3,1
     foo:baz
     fun:today
 
@@ -276,7 +294,7 @@ Fast search with perl regexes
 
 A little perl to duplicate each line from 1 to 3 times.
 
-    $ head -5 /usr/share/dict/words | perl -nE'$a=$_; print $a for 0..int(rand(3))'
+    head -5 /usr/share/dict/words | perl -nE'$a=$_; print $a for 0..int(rand(3))'
     A
     A
     A
@@ -312,12 +330,12 @@ jq has a fully-featured query language, but since I don't use the more advanced 
 I just remember how to index down into object:
 
     # extract user.name from every object
-    $ jq .user.name json1
+    jq .user.name json1
     "jud"
     "joe"
 
     # get the raw (unquoted) values.
-    $ jq -r .user.name json1
+    jq -r .user.name json1
     jud
     joe
 
@@ -325,12 +343,12 @@ I nearly always use jq for my json needs. However, I've recently been dealing wi
 Unfortuntely jq rounds large integers.
 
 
-    $ echo '{"a":11111222223333344444}' | jq .
+    echo '{"a":11111222223333344444}' | jq .
     {
       "a": 11111222223333345000
     }
 
-    $ echo '{"a":11111222223333344444}' | python -m json.tool
+    echo '{"a":11111222223333344444}' | python -m json.tool
     {
         "a": 11111222223333344444
     }
@@ -375,15 +393,16 @@ There's a useful command that I discovered for this called pv. `brew install pv`
 pv can produce a litle curses progress meter that updates as you go. It has a lot of formatting options,
 including the lines format, the default bytes format, ETA and other goodies.
 
-You can also do a trivial monitor in perl:
+You can also create a trivial monitor in perl:
 
-  perl -pE'say STDERR $. if $. % 1_000_000 == 0'
+    # print the line number ever 1MM lines
+    perl -pE'say STDERR $. if $. % 1_000_000 == 0'
 
 ## Generating data
 
 ### Generating columns of data by column
 
-    $ seq 20 | pr -t -3 | column -t
+    seq 20 | pr -t -3 | column -t
     1  8   15
     2  9   16
     3  10  17
@@ -394,7 +413,7 @@ You can also do a trivial monitor in perl:
 
 ### Generating columns of data by row
 
-    $ seq 20 | pr -t -3 -a | column -t
+    seq 20 | pr -t -3 -a | column -t
     1   2   3
     4   5   6
     7   8   9
@@ -425,6 +444,4 @@ Generate various sequences and random numbers
 random letters
 
     jot -r -c 10 97 122
-
-
 
