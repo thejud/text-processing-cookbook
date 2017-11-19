@@ -2,6 +2,12 @@
 
 A cookbook of tools and techniques for processing text and data at the linux command line
 
+Conventions: In code blocks, the command is left justified, while output from
+the command is indented by one space. I find it annoying to remove the "$ "
+prefix from commands when copying and pasting them, so you should be good to
+go. I also use the `cat foo | bar` form rather than `bar < foo` because I've
+fat-fingered '>' instead of '<' one too many times, overwriting my input file.
+Also, many of these recipes are part of a larger pipeline.
 
 ## text tools
 
@@ -26,12 +32,20 @@ paste a b c
 5    2.0    10
 ```
 
+### join: intersect two files
+
+`join` is use to match rows or items in one file with another.
+
+I use it in a few ways. The first is a simple inner join, combining
+data from one file with data in aother file.
+
+
 #### Concatenate files, skipping header line
 
 Often I want to combine multiple files that already have headers, most commonly
 with CSV data. However, sometime I have data with a comment block at the top.
 
-the `csvstack` command (pip install csvkit) is ideal if the data is csv.
+the `csvstack` command (`pip install csvkit`) is ideal if the data is csv.
 
     csvstack f1.csv f2.csv f3.csv
 
@@ -39,15 +53,17 @@ Here's a simple script to join files with headers:
 
     #!/usr/bin/env python
     """join files with a header line"""
+
     from __future__ import print_function
     import fileinput
+
     for line in fileinput.input():
       if not fileinput.isfirstline() or fileinput.lineno() == 1:
         print(line, end="")
 
 #### Remove the first n lines of a file with tail
 
-Tail is typically used to display the last n lines of a file, e.g. `sort myfile | tail -5`
+Tail is typically used to display the last n lines of a file, e.g. get the bottom top values with `sort data | tail -5`
 
 However, it can also skip lines if you provide a positive offset, e.g. `tail +10`
 The catch is that the number you provide is where it will start printing, not how many
@@ -58,6 +74,11 @@ lines will be skipped.
     3
     4
     5
+
+Note: If you actually want the top 5 values from a dataset, it's more common to
+reverse the sort and take the first values, e.g. `sort -nr data | head -5`
+which should be just as fast to sort, and avoids reading through the entire
+file just to get the last few values.
 
 #### Sort a file with a header
 
@@ -192,29 +213,22 @@ for pretty printing parts of a log file (note that it's not good for the entire
 line, as it works best when there are a limited (and constant) number of
 columns.
  
-cat > txt <<EOF
-the quick brown fox
-jumped over the lazy
-dogs and it was
-so very, very funny
-EOF
+    cat > mytxt <<EOF
+    the quick brown fox
+    jumped over the lazy
+    dogs and it was
+    so very, very funny
+    EOF
 
-    column -t txt
+Use the table mode to turn it into variable width columns, each sized according
+to the largest item.
+
+    column -t mytxt
      the     quick  brown  fox
      jumped  over   the    lazy
      dogs    and    it     was
      so      very,  very   funny
 
-
-Fill the rows first
-
-
-## join: intersect two files
-
-`join` is use to match rows or items in one file with another.
-
-I use it in a few ways. The first is a simple inner join, combining
-data from one file with data in aother file.
 
 ## Grouping data
 
@@ -353,14 +367,22 @@ Note that it apparently ignores order
 
 #### f - trivial field extractor
 
-https://blog.plover.com/prog/runN.html
+[f column extractor](https://blog.plover.com/prog/runN.html)
+
+f is a tool with a laser-sharp focus: Extract a single column from a whitespace
+delimited file. If you find yourself going often to awk for something like `awk
+'{print $3}'`, then add f to your arsenal.
+
 
     # quickly extract one column
-    cat data | f 3
+    printf "the quick brown fox\nand so it goes" | f 3
+     brown
+     it
 
 #### scut - swiss army knife of column cutters
 
-https://github.com/hjmangalam/scut
+[scut is a better (if slower) cut, extracts arbitrary columns to be selected
+based on regexes](https://github.com/hjmangalam/scut)
 
     # zero indexed, easy to get many columns
     cat data | scut -f '2 1'
@@ -372,7 +394,13 @@ https://github.com/hjmangalam/scut
 
 ### ag - the silver searcher
 
-Fast search with perl regexes
+[ag - AKA the silver searcher](https://github.com/ggreer/the_silver_searcher) is
+a fast, flexible grep alternative forcused on powerful searches with
+perl-compatible regular expressions and common default options like recursive
+search, avoiding .git files, and a few other nice features.
+
+`brew install the_silver_searcher` or `apt-get install silversearcher-ag`
+
 
 ## Transforming data
 
@@ -557,4 +585,58 @@ gnu sort can sort human units, like 10K, 100g.
      92K    ./.git/objects
      44K    ./.git/hooks
      20K    ./.git/logs
+
+## Batch and parallel execution with xargs and parallel
+
+There are a few commands that are generally useful when working with many files.
+
+### xargs 
+
+xargs allows you to generate commands by piping in parameters. 
+
+A trivial example is to compress the 3 oldest files in the directory. I list
+the csv files, sorted by age(recent first), and then take the last 3. These 3
+files, one per line, are passed into xargs, which sends them to whatever
+command I specify as arguments.
+
+    ls -1 -t *.csv | tail -3 | xargs -t gzip
+     gzip 19.csv 18.csv 17.csv
+
+I use a few options frequently:
+
+*  `-n 1` to only pass one argument at a time, like a for loop. Note that many
+   of the common uses of xargs can also be replaced by a simple bash for loop.
+* parameter subsitution with `-I %`. If I want multiple replacements, or need to an an extension, that's a good way.
+
+    ls -1 *.sql | xargs -n 1 -I % echo mycommand --logfile %.log %
+     mycommand --logfile 201701.csv.log 201701.csv
+     mycommand --logfile 201702.csv.log 201702.csv
+
+* parallel execution of commands.
+
+    # gzip csv files, with four parallel processes.
+    # print lines as we execut them, and send one file
+    # at a time to each invocation
+
+    ls -t -1 *.csv | xargs -P 4 -t -n 1 gzip   
+     gzip 04.csv
+     gzip 03.csv
+     gzip 02.csv
+     gzip 01.csv
+
+Which leads into the next section, for a higher-powered alternative.
+
+### GNU parallel
+
+Parallel is a powerful and huge tool, and has many pages of manuals and examples.
+
+However, there are a few key things that I like about running commands via parallel:
+
+* easily create separate log files for each invocation.
+* run commands on multiple machines
+
+See also: [sem](https://www.gnu.org/software/parallel/sem.html), part of the
+gnu parallel package, which allows you to easily limit the number of concurrent
+proceses without the complexity of parallel. Very useful for running N jobs in
+parallel inside a simple for loop.
 
