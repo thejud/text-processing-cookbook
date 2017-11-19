@@ -62,9 +62,46 @@ lines will be skipped.
 #### Sort a file with a header
 
 Sometimes you have a file that has a multiline header, and you'd like to sort
-the data but keep the data. One nice technique is to print the header to stderr,
-and then process the rest of the file.
+the data but keep the header. One nice technique is to print the header to
+stderr, and then process the rest of the file before displaying it. This is
+also a nice way to provide "users" with a variety of options to sort the
+output, assuming it is in easily sortable form. 
 
+It's pretty easy to do this with head and tail, although you have to remember
+that the offsets are off by one:
+
+    cat > data <EOM
+     # Here's some data
+     # with a header
+     20
+     5
+     1
+     15
+     EOM
+
+Now, I'd like to sort the data in descending order, but the header gets sorted
+as well.
+
+    sort -nr data
+     20
+     13
+     5
+     1
+     # with a header
+     # Here's some data
+
+Instead, if we put the header on stderr, and then sort the rest, we'll get what we want
+
+    head -2 data > /dev/stderr; tail +3 data  | sort -nr
+     # Here's some data
+     # with a header
+     20
+     13
+     5
+     1
+
+Now, with this small behead script, we can sort only the data portion
+of a file:
 
     #!/usr/bin/env perl
     use Getopt::Std;
@@ -79,17 +116,6 @@ and then process the rest of the file.
       }
     }
 
-Now, with this small behead script, we can sort only the data portion
-of a file:
-
-    cat > data <EOM
-     # Here's some data
-     # with a header
-     20
-     5
-     1
-     15
-     EOM
 
     behead -2 data | sort -nr
      # Here's some data
@@ -99,16 +125,16 @@ of a file:
      5
      1
 
-It's pretty easy to do something similar with head and tail,
-although you have to remember that the offsets are off by one:
 
-    head -2 data > /dev/stderr; tail +3 data  | sort -nr
+#### put data into a specific number of columns with pr
 
-#### put a row  of data into columns
+The pr command is used to format text files for printing, and it has a large
+set of options. It can also be used to do some useful things for display.
 
-Note that the -t option is required to skip the unwanted header.
+Note that the -t option is required to skip the unwanted page header that is
+intended for print output.
 
-Three columns. Fill across first.
+Three columns. Fill down columns first.
 
 ```
 seq 10 | pr -t -3
@@ -118,7 +144,7 @@ seq 10 | pr -t -3
 4            8
 ```
 
-Three columns. Fill across first.
+Three columns. Fill across rows first.
 
 ```
 seq 10 | pr -t -3 -a
@@ -128,7 +154,10 @@ seq 10 | pr -t -3 -a
 10
 ```
 
-Specify the total width, with a flexible number of columns.
+#### Use column to create a flexible number of columns to fill the width.
+
+column is specially designed to "columnate lists", with far fewer options that pr.
+
 Fill down columns first.
 
 ```
@@ -154,12 +183,15 @@ seq 30 | column -c 40 -x
 ```
 
 
-### making evenly spaced columns from data
+#### making data tables with column
 
-Sometime you have unevenly spaced fields (or words), and you'd like to turn it into nice
-white-space separated columns. The column command has a table mode.
+Sometime you have unevenly spaced fields (or words), and you'd like to turn it
+into nice white-space separated columns. The column command has also table mode
+for just this. I often use this to either pretty print a command's fields, or
+for pretty printing parts of a log file (note that it's not good for the entire
+line, as it works best when there are a limited (and constant) number of
+columns.
  
-```
 cat > txt <<EOF
 the quick brown fox
 jumped over the lazy
@@ -167,18 +199,22 @@ dogs and it was
 so very, very funny
 EOF
 
-column -t txt
-the     quick  brown  fox
-jumped  over   the    lazy
-dogs    and    it     was
-so      very,  very   funny
-```
+    column -t txt
+     the     quick  brown  fox
+     jumped  over   the    lazy
+     dogs    and    it     was
+     so      very,  very   funny
+
 
 Fill the rows first
 
 
-#### join: intersect two files
+## join: intersect two files
 
+`join` is use to match rows or items in one file with another.
+
+I use it in a few ways. The first is a simple inner join, combining
+data from one file with data in aother file.
 
 ## Grouping data
 
