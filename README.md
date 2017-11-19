@@ -7,15 +7,20 @@ the command is indented by one space. I find it annoying to remove the "$ "
 prefix from commands when copying and pasting them, so you should be good to
 go. I also use the `cat foo | bar` form rather than `bar < foo` because I've
 fat-fingered '>' instead of '<' one too many times, overwriting my input file.
-Also, many of these recipes are part of a larger pipeline.
+Also, I also use most of these scripts as part of a larger pipeline.
 
 ## text tools
 
 ### Merging files
 
-#### combine multiple files of sorted data
+#### merge sort  multiple files of sorted data
 
-    sort --merge file1 file2 file3
+Sometimes I have data that has already been sorted by another process. GNU sort
+is very powerful and has a variety of features like parallel sorting and large
+file sorting (more on sort below). It also provides merge-sorting of pre-sorted
+files via the `--merge` switch.
+
+    sort --merge sorted1 sorted2 sorted3
 
 #### paste: add files side by side
 
@@ -25,20 +30,73 @@ seq -w 0 .5 2 > b
 seq 6 10 > c
 
 paste a b c
-1    0.0    6
-2    0.5    7
-3    1.0    8
-4    1.5    9
-5    2.0    10
+ 1    0.0    6
+ 2    0.5    7
+ 3    1.0    8
+ 4    1.5    9
+ 5    2.0    10
 ```
 
-### join: intersect two files
+#### join: intersect two files
 
 `join` is use to match rows or items in one file with another.
 
-I use it in a few ways. The first is a simple inner join, combining
-data from one file with data in aother file.
+It can be used, much like a database, to join rows that match other
+rows based on a field from each file. It requires each file to be
+sorted on the join field, however.
 
+Other than basic lookup, I also use join to fill in missing values in a
+sequence. For example, I have a file with per-minute error counts, and I want
+to see both the minutes with errors, and the minutes without errors (which are
+not present in the input). The errors data could be the output of a frequency
+count pipeline, described below.
+
+    cat > errors <<EOM
+    12	12:31
+    12	12:34
+    19	12:32
+    23	12:36
+    99	12.37
+    EOM
+
+And we'll generate all the minutes in our range. See the generation section or
+the section on gnu parallel for some additional ideas, but here's an example of
+using the seq command with a template. tee prints the ouput both to a file, and
+to the screen.
+
+    seq -f "12:%02.0f" 31 37 | tee minutes
+    12:31
+    12:32
+    12:33
+    12:34
+    12:35
+    12:36
+    12:37
+
+`join` requires that the both input files are pre-sorted by the join key, and so
+we will have to re-sort the errors table before joining. I'll use sort and sort
+"inplace", overwriting the original file: However, a temp file would work just
+as well. I'm sorting on field #2, and sort uses whitespace as column delimiters
+by default. We'll skip the items table, since it's already sorted.
+
+    sort -o errors -k 2 errors
+
+Now we're ready to do the join. We need to specify what fields we want to join
+on from each file. Since we want the first (and only) field from minutes, we can 
+omit it. `-a 2` tells join to show missing matches from the minutes file, 
+and `-1 2` tells join to use the join key from file 1, field 2.
+
+    join  -a 2 -1 2 00 errors minutes
+     12:31 12
+     12:32 19
+     12:33
+     12:34 12
+     12:35
+     12:36 23
+     12:37 99
+
+With an additional filter, we could add a default value of zero, but it is
+now clear in context which values are missing.
 
 #### Concatenate files, skipping header line
 
@@ -146,6 +204,15 @@ of a file:
      5
      1
 
+Another interesting use of behead is to quickly see both the first and last value of some input,
+like a range query. 
+
+IMPORTANT NOTE: behead prints output to stderr, so this isn't suitable for piping to another
+command, but can be useful just to see in the terminal.
+
+    seq -w 1 10 | sort | tail -1
+     01
+     10
 
 #### put data into a specific number of columns with pr
 
