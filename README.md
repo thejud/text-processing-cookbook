@@ -69,7 +69,7 @@ and then process the rest of the file.
     #!/usr/bin/env perl
     use Getopt::Std;
     my $opt_n = 1;
-    getopts('n');
+    getopts('n:');
 
     while(<>) {
       if ($. <= $opt_n ) {
