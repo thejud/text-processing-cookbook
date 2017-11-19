@@ -1,0 +1,30 @@
+#!/usr/bin/env perl
+# behead: print first n lines to stderr
+# Jud Dagnall, <jud@dagnall.net>
+#
+# seq 5 | behead | sort -nr
+# seq 5 | behead -2 | sort -nr
+# seq 5 | behead -n 2 | sort -nr
+
+use Getopt::Std;
+
+# support numeric args like -3
+@ARGV = map {
+  if (/^-(\d+)$/) { 
+    $opt_n = $1;
+    ();  # remove from ARGV
+  } else {
+    $_;
+  }
+} @ARGV;
+
+getopts('n:');
+$opt_n //= 1;
+
+while(<>) {
+  if ($. <= $opt_n ) {
+    print STDERR;
+  } else { 
+    print
+  }
+}

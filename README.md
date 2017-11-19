@@ -5,18 +5,11 @@ A cookbook of tools and techniques for processing text and data at the linux com
 
 ## text tools
 
-### Sorting
+### Merging files
 
-#### sort items lexicographically, numerically (gnu sort)
-
-    sort
-    sort -n
-
-#### combine multiple files of sorted data:
+#### combine multiple files of sorted data
 
     sort --merge file1 file2 file3
-
-### combine multiple files
 
 #### paste: add files side by side
 
@@ -33,23 +26,85 @@ paste a b c
 5    2.0    10
 ```
 
-#### Concatenate files, skipping headers
+#### Concatenate files, skipping header line
 
-If you want to join several files, but only keep the headers from the first one,
-there are a few ways to do it.
+Often I want to combine multiple files that already have headers, most commonly
+with CSV data. However, sometime I have data with a comment block at the top.
 
-the csvstack command (csvkit) is ideal if the data is csv.
+the `csvstack` command (pip install csvkit) is ideal if the data is csv.
 
-You can also combine files without headers
+    csvstack f1.csv f2.csv f3.csv
+
+Here's a simple script to join files with headers:
 
     #!/usr/bin/env python
+    """join files with a header line"""
     from __future__ import print_function
     import fileinput
     for line in fileinput.input():
       if not fileinput.isfirstline() or fileinput.lineno() == 1:
         print(line, end="")
 
-### put a sequence of data into columns
+#### Remove the first n lines of a file with tail
+
+Tail is typically used to display the last n lines of a file, e.g. `sort myfile | tail -5`
+
+However, it can also skip lines if you provide a positive offset, e.g. `tail +10`
+The catch is that the number you provide is where it will start printing, not how many
+lines will be skipped.
+
+    # starts on line 3
+    seq 5 | tail +3 
+    3
+    4
+    5
+
+#### Sort a file with a header
+
+Sometimes you have a file that has a multiline header, and you'd like to sort
+the data but keep the data. One nice technique is to print the header to stderr,
+and then process the rest of the file.
+
+
+    #!/usr/bin/env perl
+    use Getopt::Std;
+    my $opt_n = 1;
+    getopts('n');
+
+    while(<>) {
+      if ($. <= $opt_n ) {
+        print STDERR;
+      } else { 
+        print
+      }
+    }
+
+Now, with this small behead script, we can sort only the data portion
+of a file:
+
+    cat > data <EOM
+     # Here's some data
+     # with a header
+     20
+     5
+     1
+     15
+     EOM
+
+    behead -2 data | sort -nr
+     # Here's some data
+     # with a header
+     20
+     15
+     5
+     1
+
+It's pretty easy to do something similar with head and tail,
+although you have to remember that the offsets are off by one:
+
+    head -2 data > /dev/stderr; tail +3 data  | sort -nr
+
+#### put a row  of data into columns
 
 Note that the -t option is required to skip the unwanted header.
 
@@ -444,4 +499,26 @@ Generate various sequences and random numbers
 random letters
 
     jot -r -c 10 97 122
+
+## Sorting
+
+### gnusort on osx via coreutils
+
+On osx, you will probably want gnusort, which can be installed via `brew install coreutils`
+
+#### sort items lexicographically, numerically (gnu sort)
+
+    sort
+    sort -n
+
+#### sort with size units, (k, m, etc)
+
+gnu sort can sort human units, like 10K, 100g.
+
+    du -h | gsort -h -r | head -5
+    256K    .
+    212K    ./.git
+     92K    ./.git/objects
+     44K    ./.git/hooks
+     20K    ./.git/logs
 
