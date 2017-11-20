@@ -2,18 +2,246 @@
 
 A cookbook of tools and techniques for processing text and data at the linux command line
 
+I often find myelf processing text on the linux command line, logfiles, data files,
+command output, etc... Using these operations follow the following pattern:
+
+Many of my data processing tasks follow this pattern:
+
+FILTER the input, selecting a set of lines that I want
+TRANFORM the selected lines into a more useful format
+REFILTER or JOIN the transformed data
+AGGREGATE the data
+DISPLAY the aggregate data in an informative way
+
+Due to the power and flexibility of linux pipes, I can quickly assemble a set
+of commands that are very effective on small to medium sized datasets (able to
+fit on a single machine). Without doing a lot of programming, I can do
+exploratory analysis, and answer many types of questions quickly.
+
+
+This document describes a variety of linux tools (built-in and/or open source)
+that I've found useful for various parts of the progress.
+
 Conventions: In code blocks, the command is left justified, while output from
 the command is indented by one space. I find it annoying to remove the "$ "
 prefix from commands when copying and pasting them, so you should be good to
 go. I also use the `cat foo | bar` form rather than `bar < foo` because I've
 fat-fingered '>' instead of '<' one too many times, overwriting my input file.
-Also, I also use most of these scripts as part of a larger pipeline.
+Also, I also use most of these scripts as part of a larger pipeline. Here's an
+example of how a command and its output will be formatted.
 
-## text tools
+    seq 10 | head -3
+     1
+     2
+     3
+ 
 
-### Merging files
+## Extracting data
 
-#### merge sort  multiple files of sorted data
+Extraction is a subset of transformation, but it is important enough to have its own
+section.
+
+perl, sed and awk are all common tools for both selection and extraction
+
+### Extracting one or more columns with awk
+
+    # breaks on any whitespace
+    cat data | awk '{print $3}'
+
+### extracting fields with cut
+
+Cut is quite strict, but useful when you have fixed delimiters, or want to extract things by character position
+
+### Extract by character position
+
+    cat > alpha <<EOF
+     abcdef
+     gehijk
+     EOF
+
+    cat alpha | cut -c '2-4,6'
+     bcdf
+     ehik
+
+### Extract by field widths with awk (and in2csv)
+
+Sometimes you will have fields of known (but possibly variable) width, AKA
+fixed width format.
+
+awk can be used to extract the fields (you may need to install gnu awk)
+
+    echo aaaaBBcccccDe | awk '$1=$1' FIELDWIDTHS='4 2 5 1 1' OFS=, 
+    aaaa,BB,ccccc,D,e
+
+from https://stackoverflow.com/a/28562381
+
+Note that you can also use `in2csv` (part of `csvkit`) to convert fixed with
+to csv files with headers. It requires a schema file, so this is probably most
+practical if you find yourself doing this frequently for the same schema, or
+there are a LOT of fields and you probably need to iterate through them anyway.
+
+
+### Convert whitespace-delimited columns to csv
+
+This can be relatively simple. If you know that you data doesn't contain
+any additional commas, you can do a simple substition:
+
+    perl -pe's/\h+/,/g';  # horizontal space, no newline
+    perl -anE'say join(",", @F)'
+
+If you can't be sure that there won't be commas in the
+fields, you'll want to do proper quoting. Use a real
+csv tool.
+
+    perl -anE'say join("\t", @F)' | csvformat -t -h
+
+### Extract by position with simple delimter
+
+    cat > data <<EOF	
+    foo:bar:baz
+    fun:stuff:today
+    EOF
+
+    cat data | cut -d: -f 1,3
+    foo:baz
+    fun:today
+
+Note that cut apparently ignores field order:
+
+    cat data | cut -d: -f 3,1
+    foo:baz
+    fun:today
+
+### cutting columns, other tools
+
+### f - trivial field extractor
+
+[f column extractor](https://blog.plover.com/prog/runN.html)
+
+f is a tool with a laser-sharp focus: Extract a single column from a whitespace
+delimited file. If you find yourself going often to awk for something like `awk
+'{print $3}'`, then add f to your arsenal.
+
+
+    # quickly extract one column
+    printf "the quick brown fox\nand so it goes" | f 3
+     brown
+     it
+
+### scut - swiss army knife of column cutters
+
+[scut is a better (if slower) cut, extracts arbitrary columns to be selected
+based on regexes](https://github.com/hjmangalam/scut)
+
+    # zero indexed, easy to get many columns
+    cat data | scut -f '2 1'
+
+### for CSV data, use csvcut
+
+`csvcut` is part of the `csvkit` suite
+
+## Transformation tools
+
+There's not a really clear line between extraction and transformation.
+
+perl is my tool of choice for many line-oriented transformations. It's worth learning a few tricks,
+and invensting some time in either perl, sed or awk.
+
+
+### General transformation with perl -pE and -nE
+
+The perl -p option turns on filter mode. Any changes made by the expression
+argument (-e or -E) will be applied, and then each line will be printed. Using
+regular expressions is a good way to remove parts of the line, or add to it.
+
+Here's an example of removing the subsecond timestamp from a log line:
+
+    printf "2017-11-01T12:14:22.12352 ERROR critical" \
+    | perl -pe's/\.(\d*) / /'  
+     2017-11-01T12:14:22 ERROR critical
+
+You can also extract portions of the line by matching against the entire line. Here's
+a moderately complicated regular expression that extracts the hour:minute pair, and the log level (ERROR or FATAL). This
+might be the first step in analyzing errors per minute.
+
+    printf "2017-11-01T12:14:22.12352 ERROR critical" \
+    | perl -pe's/^.*?T(\d\d:\d\d):\S+ (ERROR|FATAL) .*$/$1 $2/'
+     12:14 ERROR
+
+I tend to prefer to only take the parts I want, rather than replacing the
+entire line. perl's `-n` flag loops over all the input, but doesn't print
+anything. The -E flag is a modern version of the -e flag, and just makes some
+of the more modern perl features available. I use it so that I can use "say"
+instead of "print", which is shorter and adds the trailing newline.
+
+
+    printf "2017-11-01T12:14:22.12352 ERROR critical" \
+    | perl -nE'/T(\d\d:\d\d):\S+ (ERROR|FATAL)/ and say "$1 $2"'
+     12:14 ERROR
+
+If you don't know anything about regular expressions, this will all seem very
+mysterious, but if you do much text (or log) munging, it's worthwhile to learn
+the basics. 
+
+Also, like anything other part of your pipelin, it's fine to clean up your
+output in multiple smaller, simpler filters. I often do this because it's
+easier to apply fixes than to get one large regex just right. Naturally, if
+you're building a high-volume or production pipeline, it's probably worthwhile
+to take the time to get it right. 
+
+Note that I'm using tee /dev/stderr to give some diagnostic output at each
+stage in the pipeline so you can see how the line is progressively refined. You
+would only want to do that for debugging or development. Although see the `pv`
+recipe later for more on getting a progress meter for your pipeline.
+
+    printf "2017-11-01T12:14:22.12352 ERROR critical" \
+    | cut -d ' ' -f 1,2 \
+    | tee /dev/stderr \
+    \
+    | perl -pe's/^.*?T//' \
+    | tee /dev/stderr \
+    \
+    | perl -pe's/\.\S+//' \
+    | tee /dev/stderr \
+    \
+    | perl -pe's/:\d\d / /' \
+     2017-11-01T12:14:22.12352 ERROR
+     12:14:22.12352 ERROR
+     12:14:22 ERROR
+     12:14 ERROR
+
+### collapse or replace spaces and newlines
+
+perl has a few character classes in regular expressions that are worthwhile:
+
+* \s is for general whitespace (spaces, newlines and tabs)
+* \h is for horizontal whitespace (spaces and tabs)
+* \v is for vertical whitespace (newlines)
+* \t is for tabs
+
+So, to collapse multiple spaces or tabs into a single character (":" in this case):
+
+    printf "a b c\nfoo bar baz\n" | column -t | tee data
+     a    b    c
+     foo  bar  baz
+
+To collapse the (horizontal) spaces and tabs:
+
+    perl -pE's/\h+/:/g' data
+     a:b:c
+     foo:bar:baz
+
+To collapse the vertical newlines:
+
+    perl -pE's/\v+/:/g' data   # or \n
+     a    b    c:foo  bar  baz:
+
+To collapse both spaces and newlines:
+
+    perl -pE's/\s+/:/g' data
+     a:b:c:foo:bar:baz:
+
+### merge sort  multiple files of sorted data
 
 Sometimes I have data that has already been sorted by another process. GNU sort
 is very powerful and has a variety of features like parallel sorting and large
@@ -22,7 +250,7 @@ files via the `--merge` switch.
 
     sort --merge sorted1 sorted2 sorted3
 
-#### paste: add files side by side
+### paste: add files side by side
 
 ```
 seq 1 5 > a
@@ -37,7 +265,7 @@ paste a b c
  5    2.0    10
 ```
 
-#### join: intersect two files
+### join: intersect two files
 
 `join` is use to match rows or items in one file with another.
 
@@ -98,7 +326,7 @@ and `-1 2` tells join to use the join key from file 1, field 2.
 With an additional filter, we could add a default value of zero, but it is
 now clear in context which values are missing.
 
-#### Concatenate files, skipping header line
+### Concatenate files, skipping header line
 
 Often I want to combine multiple files that already have headers, most commonly
 with CSV data. However, sometime I have data with a comment block at the top.
@@ -119,7 +347,7 @@ Here's a simple script to join files with headers:
       if not fileinput.isfirstline() or fileinput.lineno() == 1:
         print(line, end="")
 
-#### Remove the first n lines of a file with tail
+### Remove the first n lines of a file with tail
 
 Tail is typically used to display the last n lines of a file, e.g. get the bottom top values with `sort data | tail -5`
 
@@ -138,7 +366,7 @@ reverse the sort and take the first values, e.g. `sort -nr data | head -5`
 which should be just as fast to sort, and avoids reading through the entire
 file just to get the last few values.
 
-#### Sort a file with a header
+### Sort a file with a header
 
 Sometimes you have a file that has a multiline header, and you'd like to sort
 the data but keep the header. One nice technique is to print the header to
@@ -214,7 +442,7 @@ command, but can be useful just to see in the terminal.
      01
      10
 
-#### put data into a specific number of columns with pr
+### put data into a specific number of columns with pr
 
 The pr command is used to format text files for printing, and it has a large
 set of options. It can also be used to do some useful things for display.
@@ -271,7 +499,7 @@ seq 30 | column -c 40 -x
 ```
 
 
-#### making data tables with column
+### making data tables with column
 
 Sometime you have unevenly spaced fields (or words), and you'd like to turn it
 into nice white-space separated columns. The column command has also table mode
@@ -296,35 +524,33 @@ to the largest item.
      dogs    and    it     was
      so      very,  very   funny
 
-
 ## Grouping data
 
-#### Find distinct items, removing duplicates:
+### Find distinct items, removing duplicates:
 
     cat data | sort -u
 
     cat data | sort | uniq
 
-#### Find unique items
+### Find unique items
 
     cat data | sort | uniq -u
 
-#### Find duplicate items
+### Find duplicate items
 
     cat data | sort | uniq -d
 
-#### get a frequency count of items, or find common items
-
+### get a frequency count of items, or find common items
 
     # pipe into head or tail to get the most or least frequent items
     cat data | sort | uniq -c | sort -nr 
 
-#### Find the n most common items
+### Find the n most common items
 
     # find tps 7 most common items
     cat data | sort | uniq -c | sort -nr  | head -7
 
-#### Better frequency counts
+### Better frequency counts
 
 https://github.com/wizzat/distribution
 
@@ -346,12 +572,11 @@ https://github.com/wizzat/distribution
               Abba|17 (4.12%) -------------------------------------
             absume|14 (3.39%) ------------------------------    
 
-#### Histogram of values
+### Histogram of values
 
 https://github.com/bitly/data_hacks
 
     pip install data_hacks
-
 
 Generate 1000 random values from 0-300 and generate a histogram:
 
@@ -371,127 +596,6 @@ Generate 1000 random values from 0-300 and generate a histogram:
       269.9608 -   299.9432 [    83]: ∎∎∎∎∎∎∎∎∎∎∎∎∎∎∎∎∎∎∎∎∎∎∎∎∎∎
 
 Note: I removed some of the bucket indicators to make the lines shorter.
-
-## Whitespace delimited data
-
-### Extracting one or more columns with awk
-
-    # breaks on any whitespace
-    cat data | awk '{print $3}'
-
-### extracting fields with cut
-
-Cut is quite strict, but useful when you have fixed delimiters, or want to extract things by character position
-
-#### Extract by character position
-
-    cat > alpha <<EOF
-    abcdef
-    gehijk
-    EOF
-    
-
-    cat alpha | cut -c '2-4,6'
-    bcdf
-    ehik
-
-#### Extract by fields width
-
-Sometimes you will have fields of known (but possibly variable) width:
-
-awk can be used to extract the fields (you may need to install gnu awk)
-
-    echo aaaaBBcccccDe | awk '$1=$1' FIELDWIDTHS='4 2 5 1 1' OFS=, 
-    aaaa,BB,ccccc,D,e
-
-from https://stackoverflow.com/a/28562381
-
-
-#### Convert whitespace columns to csv
-
-    perl -anE'say join(",", @F)'
-
-    perl -anE'say join("\t", @F)' | csvformat -t -h
-
-#### Extract by position with simple delimter
-
-    cat > data <<EOF	
-    foo:bar:baz
-    fun:stuff:today
-    EOF
-
-    cat data | cut -d: -f 1,3
-    foo:baz
-    fun:today
-
-Note that it apparently ignores order
-
-    cat data | cut -d: -f 3,1
-    foo:baz
-    fun:today
-
-### cutting columns, third party solutions
-
-#### f - trivial field extractor
-
-[f column extractor](https://blog.plover.com/prog/runN.html)
-
-f is a tool with a laser-sharp focus: Extract a single column from a whitespace
-delimited file. If you find yourself going often to awk for something like `awk
-'{print $3}'`, then add f to your arsenal.
-
-
-    # quickly extract one column
-    printf "the quick brown fox\nand so it goes" | f 3
-     brown
-     it
-
-#### scut - swiss army knife of column cutters
-
-[scut is a better (if slower) cut, extracts arbitrary columns to be selected
-based on regexes](https://github.com/hjmangalam/scut)
-
-    # zero indexed, easy to get many columns
-    cat data | scut -f '2 1'
-
-## Searching
-
-* grep
-* grep -P
-
-### ag - the silver searcher
-
-[ag - AKA the silver searcher](https://github.com/ggreer/the_silver_searcher) is
-a fast, flexible grep alternative forcused on powerful searches with
-perl-compatible regular expressions and common default options like recursive
-search, avoiding .git files, and a few other nice features.
-
-`brew install the_silver_searcher` or `apt-get install silversearcher-ag`
-
-
-## Transforming data
-
-### Filtering
-
-*  sed
-* perl -nE'/(\d)$/ and say $1'
-
-#### duplicating input lines a random number of times
-
-A little perl to duplicate each line from 1 to 3 times.
-
-    head -5 /usr/share/dict/words | perl -nE'$a=$_; print $a for 0..int(rand(3))'
-    A
-    A
-    A
-    a
-    aa
-    aal
-    aal
-    aal
-    aalii
-    aalii
-    aalii
 
 
 ## csv/tsv:
