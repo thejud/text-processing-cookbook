@@ -7,11 +7,11 @@ command output, etc... Using these operations follow the following pattern:
 
 Many of my data processing tasks follow this pattern:
 
-FILTER the input, selecting a set of lines that I want
-TRANFORM the selected lines into a more useful format
-REFILTER or JOIN the transformed data
-AGGREGATE the data
-DISPLAY the aggregate data in an informative way
+* FILTER the input, selecting a set of lines that I want
+* TRANFORM the selected lines into a more useful format
+* REFILTER or JOIN the transformed data
+* AGGREGATE the data
+* DISPLAY the aggregate data in an informative way
 
 Due to the power and flexibility of linux pipes, I can quickly assemble a set
 of commands that are very effective on small to medium sized datasets (able to
