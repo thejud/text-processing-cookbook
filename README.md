@@ -35,7 +35,6 @@ example of how a command and its output will be formatted.
      2
      3
  
-
 ## Extracting data
 
 Extraction is a subset of transformation, but it is important enough to have its own
@@ -241,6 +240,22 @@ To collapse both spaces and newlines:
     perl -pE's/\s+/:/g' data
      a:b:c:foo:bar:baz:
 
+### convert spaces to newline with tr or perl
+
+tr is a simple solution here, as long as you only want one to one replacement:
+
+    echo "1 2 3" | tr " " '\n'
+     1
+     2
+     3
+
+As described  in the perl section above, you can use perl to replace spaces with newlines:
+
+    echo "1   2 3" | perl -pe's/ +/\n/g' 
+     1
+     2
+     3
+ 
 ### merge sort  multiple files of sorted data
 
 Sometimes I have data that has already been sorted by another process. GNU sort
@@ -438,7 +453,7 @@ like a range query.
 IMPORTANT NOTE: behead prints output to stderr, so this isn't suitable for piping to another
 command, but can be useful just to see in the terminal.
 
-    seq -w 1 10 | sort | tail -1
+    seq -w 1 10 | behead | tail -1
      01
      10
 
@@ -498,6 +513,27 @@ seq 30 | column -c 40 -x
 26      27      28      29      30
 ```
 
+### joining all lines with xargs echo 
+
+If you just want all the items on the same line, `xargs echo` is quick and dirty, joining
+with spaces.
+
+    seq 20 | xargs echo
+     1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20
+
+Use a perl transformation like `perl -pe's/\n/:/g'` to join on other characters.
+
+To have a specific number of columns, still space separated, have xargs break
+it up for you. here's we're chosing 5 at a time, and notice that the alignment
+isn't very good. See `column` below for how to align columns.
+
+    seq 20 | xargs -n5 echo
+     1 2 3 4 5
+     6 7 8 9 10
+     11 12 13 14 15
+     16 17 18 19 20
+
+See below for the section on xargs. 
 
 ### making data tables with column
 
@@ -656,6 +692,85 @@ Here's a simple python solution:
     for line in fileinput.input():
         print(json.dumps(json.loads(line.rstrip('\r\n')), indent=2))
 
+
+## Filter and select
+
+grep is the linux go-to search tool, supporting fast searching using patterns
+and regular expression.
+
+I'll cover some other options here.
+
+### ag - the silver searcher
+
+[ag - AKA the silver searcher](https://github.com/ggreer/the_silver_searcher) is
+a fast, flexible grep alternative to grep forcused on powerful searches with
+perl-compatible regular expressions and common default options like recursive
+search, avoiding .git files, and a few other nice features.
+
+`brew install the_silver_searcher` or `apt-get install silversearcher-ag`
+
+### searching via perl
+
+perl also has build in regular expressions, and a few other things that make it worthwhile.
+
+#### select first and last lines
+
+Found this recently: https://unix.stackexchange.com/a/139199
+
+    seq 10 |  perl -ne 'print if 1..1 or eof'
+
+It's worthwhile because it demonstrates some quirky perl features that are quite useful:
+
+`eof` is the end of the file, and is relatively self explanatory. What is interesting is that you can print
+the last line once eof is detected.
+
+The flip-flop operator is the `1..1` portion, is true starting on the first line only.
+
+### range selection with perl's flip-flop (..) operator
+
+Perl has an interesting operator called the flip-flop operator that can be used to select ranges of things.
+
+    echo "a b c d e f g" | tr ' ' "\n" | tee letters
+     a
+     b
+     c
+     d
+     e
+     f
+     g
+
+Now, select everything between the line starting with c, and the line starting with e:
+
+    perl -nE'print if /^c/../^e/' letters
+     c
+     d
+     e
+
+If integers are provided for one or both conditions, it is matched against the line number (AKA $.)
+
+    perl -nE'print if /^c/..5' letters
+     c
+     d
+     e
+
+    perl -nE'print if 3..5' letters
+     c
+     d
+     e
+
+And finally, you can continue to the end of the file by using eof:
+
+    perl -nE'print if /^e/..eof' letters
+     e
+     f
+     g
+     
+
+
+once whatever is on the left side of the `..` is matched, the entire expression becomes true. It becomes false
+after the right side is matched. Often, regexes are used on each side, e.g. `print if /^START/../^END/` to
+print all lines between started and ended.
+
 ## Misc
 
 
@@ -712,6 +827,13 @@ You can also create a trivial monitor in perl:
     16  17  18
     19  20
 
+### Generating a sequence of letters:
+
+    perl -E'say for "a".."d"'
+     a
+     b
+     c
+     d
 
 ### Generating random numbers
 
