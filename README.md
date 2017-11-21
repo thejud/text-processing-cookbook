@@ -1,15 +1,16 @@
 # text-processing-cookbook
 
-A cookbook of tools and techniques for processing text and data at the linux command line
+A cookbook of tools and techniques for processing text and data at the linux
+command line
 
-I often find myelf processing text on the linux command line, logfiles, data files,
-command output, etc... Using these operations follow the following pattern:
+I often find myelf processing text on the linux command line, things like, logfiles, data
+files, command output, etc... 
 
 Many of my data processing tasks follow this pattern:
 
 * FILTER the input, selecting a set of lines that I want
 * TRANFORM the selected lines into a more useful format
-* REFILTER or JOIN the transformed data
+* REFILTER or JOIN the transformed data to cleanup
 * AGGREGATE the data
 * DISPLAY the aggregate data in an informative way
 
@@ -18,17 +19,18 @@ of commands that are very effective on small to medium sized datasets (able to
 fit on a single machine). Without doing a lot of programming, I can do
 exploratory analysis, and answer many types of questions quickly.
 
-
-This document describes a variety of linux tools (built-in and/or open source)
-that I've found useful for various parts of the progress.
+This document describes a variety of linux tools (standard and/or open
+source) that I've found useful for various parts of the process.
 
 Conventions: In code blocks, the command is left justified, while output from
 the command is indented by one space. I find it annoying to remove the "$ "
-prefix from commands when copying and pasting them, so you should be good to
-go. I also use the `cat foo | bar` form rather than `bar < foo` because I've
-fat-fingered '>' instead of '<' one too many times, overwriting my input file.
-Also, I also use most of these scripts as part of a larger pipeline. Here's an
-example of how a command and its output will be formatted.
+prefix from commands when copying and pasting from a page. 
+
+I also use the `cat foo | bar` form rather than `bar < foo` because I've
+fat-fingered '>' instead of '<' one too many times, overwriting my source file.
+Additionally, I also use most of these scripts as part of a larger pipeline, so
+there's often another step. Here's an example of how a command and its output
+will be formatted.
 
     seq 10 | head -3
      1
@@ -37,64 +39,25 @@ example of how a command and its output will be formatted.
  
 ## Extracting data
 
-Extraction is a subset of transformation, but it is important enough to have its own
-section.
+Extraction is a subset of transformation, but it is important enough to have
+its own section.
 
 perl, sed and awk are all common tools for both selection and extraction
 
 ### Extracting one or more columns with awk
 
-    # breaks on any whitespace
-    cat data | awk '{print $3}'
+awk is commonly used to 
 
-### extracting fields with cut
+    # awk breaks on any whitespace
+    printf "a   b c\nd e  f" awk '{print $3}'
 
-Cut is quite strict, but useful when you have fixed delimiters, or want to extract things by character position
+### Extract by position with simple delimters via cut
 
-### Extract by character position
+cut is designed to extract fields from a line, given a single character
+delimter or position list. It will not split on patterns or multi-chararacter
+delimiters. Use one of the tools described below if you have more complicated
+data.
 
-    cat > alpha <<EOF
-     abcdef
-     gehijk
-     EOF
-
-    cat alpha | cut -c '2-4,6'
-     bcdf
-     ehik
-
-### Extract by field widths with awk (and in2csv)
-
-Sometimes you will have fields of known (but possibly variable) width, AKA
-fixed width format.
-
-awk can be used to extract the fields (you may need to install gnu awk)
-
-    echo aaaaBBcccccDe | awk '$1=$1' FIELDWIDTHS='4 2 5 1 1' OFS=, 
-    aaaa,BB,ccccc,D,e
-
-from https://stackoverflow.com/a/28562381
-
-Note that you can also use `in2csv` (part of `csvkit`) to convert fixed with
-to csv files with headers. It requires a schema file, so this is probably most
-practical if you find yourself doing this frequently for the same schema, or
-there are a LOT of fields and you probably need to iterate through them anyway.
-
-
-### Convert whitespace-delimited columns to csv
-
-This can be relatively simple. If you know that you data doesn't contain
-any additional commas, you can do a simple substition:
-
-    perl -pe's/\h+/,/g';  # horizontal space, no newline
-    perl -anE'say join(",", @F)'
-
-If you can't be sure that there won't be commas in the
-fields, you'll want to do proper quoting. Use a real
-csv tool.
-
-    perl -anE'say join("\t", @F)' | csvformat -t -h
-
-### Extract by position with simple delimter
 
     cat > data <<EOF	
     foo:bar:baz
@@ -111,7 +74,53 @@ Note that cut apparently ignores field order:
     foo:baz
     fun:today
 
+
+### Extract by character position with cut
+
+    cat > alpha <<EOF
+     abcdef
+     gehijk
+     EOF
+
+    cat alpha | cut -c '2-4,6'
+     bcdf
+     ehik
+
+### Extract by fixed field widths with awk (and in2csv)
+
+Sometimes you will have fields of known (but possibly variable) width, AKA
+fixed width format.
+
+awk can be used to extract the fields (you may need to install gnu awk)
+
+    echo aaaaBBcccccDe | awk '$1=$1' FIELDWIDTHS='4 2 5 1 1' OFS=, 
+    aaaa,BB,ccccc,D,e
+
+from https://stackoverflow.com/a/28562381
+
+Note that you can also use `in2csv` (part of `csvkit`) to convert fixed with
+to csv files with headers. It requires a schema file, so this is probably most
+practical if you find yourself doing this frequently for the same schema, or
+there are a LOT of fields and you probably need to iterate through them anyway.
+
+### Convert whitespace-delimited columns to csv
+
+This can be relatively simple. If you know that you data doesn't contain
+any additional commas, you can do a simple substition:
+
+    perl -pe's/\h+/,/g';  # horizontal space, no newline
+    perl -anE'say join(",", @F)'
+
+If you can't be sure that there won't be commas in the
+fields, you'll want to do proper quoting. Use a real
+csv tool.
+
+    perl -anE'say join("\t", @F)' | csvformat -t -h
+
 ### cutting columns, other tools
+
+Cutting columns of text is such a common operation that it's worthwhile to have
+a few other tools on hand.
 
 ### f - trivial field extractor
 
@@ -135,17 +144,17 @@ based on regexes](https://github.com/hjmangalam/scut)
     # zero indexed, easy to get many columns
     cat data | scut -f '2 1'
 
-### for CSV data, use csvcut
+    # negative columns are removed
+    cat data | scut -f 'ALL -1'
+
+### to extract columns from CSV data, use csvcut
 
 `csvcut` is part of the `csvkit` suite
 
 ## Transformation tools
 
-There's not a really clear line between extraction and transformation.
-
-perl is my tool of choice for many line-oriented transformations. It's worth learning a few tricks,
-and invensting some time in either perl, sed or awk.
-
+perl is my tool of choice for many line-oriented transformations. It's worth
+learning a few tricks, and invensting some time in either perl, sed or awk.
 
 ### General transformation with perl -pE and -nE
 
@@ -182,16 +191,16 @@ If you don't know anything about regular expressions, this will all seem very
 mysterious, but if you do much text (or log) munging, it's worthwhile to learn
 the basics. 
 
-Also, like anything other part of your pipelin, it's fine to clean up your
-output in multiple smaller, simpler filters. I often do this because it's
-easier to apply fixes than to get one large regex just right. Naturally, if
-you're building a high-volume or production pipeline, it's probably worthwhile
-to take the time to get it right. 
+Also, like anything other part of your pipeline, it's fine to clean up your
+output progressively with multiple smaller, simpler filters. I often do this
+because it's easier to apply fixes than to get one large regex just right.
+Naturally, if you're building a high-volume or production pipeline, it's
+probably worthwhile to take the time to get it right. 
 
-Note that I'm using tee /dev/stderr to give some diagnostic output at each
-stage in the pipeline so you can see how the line is progressively refined. You
-would only want to do that for debugging or development. Although see the `pv`
-recipe later for more on getting a progress meter for your pipeline.
+Note that in this example I'm using tee /dev/stderr to give some diagnostic
+output at each stage in the pipeline so you can see how the line is
+progressively refined. You would only want to do that for debugging or
+development. 
 
     printf "2017-11-01T12:14:22.12352 ERROR critical" \
     | cut -d ' ' -f 1,2 \
@@ -203,7 +212,7 @@ recipe later for more on getting a progress meter for your pipeline.
     | perl -pe's/\.\S+//' \
     | tee /dev/stderr \
     \
-    | perl -pe's/:\d\d / /' \
+    | perl -pe's/:\d\d / /'
      2017-11-01T12:14:22.12352 ERROR
      12:14:22.12352 ERROR
      12:14:22 ERROR
@@ -256,6 +265,19 @@ As described  in the perl section above, you can use perl to replace spaces with
      2
      3
  
+### remove newlines with perl
+
+perl is also 
+
+seq 10 | perl -pe's/\v/ /g' 
+ 1 2 3 4 5 6 7 8 9 10 
+
+Keep the final newline:
+
+seq 10 | perl -pe's/\v/ / unless eof'
+1 2 3 4 5 6 7 8 9 10
+
+
 ### merge sort  multiple files of sorted data
 
 Sometimes I have data that has already been sorted by another process. GNU sort
@@ -485,9 +507,37 @@ seq 10 | pr -t -3 -a
 10
 ```
 
-#### Use column to create a flexible number of columns to fill the width.
+### making data tables with column
 
-column is specially designed to "columnate lists", with far fewer options that pr.
+Sometime you have unevenly spaced fields (or words), and you'd like to turn it
+into nice white-space separated columns. The column command has a table mode
+for just this. I often use this to either pretty print a command's fields, or
+for pretty printing parts of a log file (note that it's not good for the entire
+line, as it works best when there are a limited (and constant) number of
+columns.
+ 
+    cat > mytxt <<EOF
+    the quick brown fox
+    jumped over the lazy
+    dogs and it was
+    so very, very funny
+    EOF
+
+Use the table mode `-t` to turn it into variable width columns, each sized
+according to the largest item.
+
+    column -t mytxt
+     the     quick  brown  fox
+     jumped  over   the    lazy
+     dogs    and    it     was
+     so      very,  very   funny
+
+### Use column to create a flexible number of columns to fill the width.
+
+pr is useful when you know how many columns you want to create. `column` also
+has a mode to create columns, but unlike pr, you set the width you want, and
+column will create an appropriate number of columns to fill it.
+
 
 Fill down columns first.
 
@@ -513,15 +563,15 @@ seq 30 | column -c 40 -x
 26      27      28      29      30
 ```
 
-### joining all lines with xargs echo 
+### joining all lines with xargs
 
-If you just want all the items on the same line, `xargs echo` is quick and dirty, joining
-with spaces.
+If you just want all the items on the same line, `xargs` is quick and dirty,
+joining with spaces. `xargs echo` can also be used.
 
-    seq 20 | xargs echo
+    seq 20 | xargs
      1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20
 
-Use a perl transformation like `perl -pe's/\n/:/g'` to join on other characters.
+Use a perl transformation like `perl -pe's/\n/:/ unless eof'` to join with other characters.
 
 To have a specific number of columns, still space separated, have xargs break
 it up for you. here's we're chosing 5 at a time, and notice that the alignment
@@ -534,31 +584,6 @@ isn't very good. See `column` below for how to align columns.
      16 17 18 19 20
 
 See below for the section on xargs. 
-
-### making data tables with column
-
-Sometime you have unevenly spaced fields (or words), and you'd like to turn it
-into nice white-space separated columns. The column command has also table mode
-for just this. I often use this to either pretty print a command's fields, or
-for pretty printing parts of a log file (note that it's not good for the entire
-line, as it works best when there are a limited (and constant) number of
-columns.
- 
-    cat > mytxt <<EOF
-    the quick brown fox
-    jumped over the lazy
-    dogs and it was
-    so very, very funny
-    EOF
-
-Use the table mode to turn it into variable width columns, each sized according
-to the largest item.
-
-    column -t mytxt
-     the     quick  brown  fox
-     jumped  over   the    lazy
-     dogs    and    it     was
-     so      very,  very   funny
 
 ## Grouping data
 
@@ -932,4 +957,5 @@ See also: [sem](https://www.gnu.org/software/parallel/sem.html), part of the
 gnu parallel package, which allows you to easily limit the number of concurrent
 proceses without the complexity of parallel. Very useful for running N jobs in
 parallel inside a simple for loop.
+
 
