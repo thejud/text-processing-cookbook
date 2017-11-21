@@ -1,7 +1,7 @@
 # text-processing-cookbook
 
 A cookbook of tools and techniques for processing text and data at the linux
-command line
+command line by Jud Dagnall <https://github.com/thejud/text-processing-cookbook>
 
 I often find myelf processing text on the linux command line, things like, logfiles, data
 files, command output, etc... 
@@ -46,10 +46,11 @@ perl, sed and awk are all common tools for both selection and extraction
 
 ### Extracting one or more columns with awk
 
-awk is commonly used to 
+one trivial but common use of awk is to extract one or more columns from text
+with variable whitespace, like formatted text or the output of a command like
+ls:
 
-    # awk breaks on any whitespace
-    printf "a   b c\nd e  f" awk '{print $3}'
+    ls -l | tail +2 | awk '{print $5}'
 
 ### Extract by position with simple delimters via cut
 
@@ -614,6 +615,9 @@ See below for the section on xargs.
 ### Better frequency counts
 
 https://github.com/wizzat/distribution
+
+Lets take some random words, repeat each one a random number of times, and then
+see what the frequency distribution of the most common words look like:
 
     cat randwords | perl -ne'$a=$_; print $a for 0..int(rand(25))' | distribution.py
                Key|Ct (Pct)   Histogram
