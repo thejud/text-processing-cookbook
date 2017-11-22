@@ -3,7 +3,29 @@
 A cookbook of tools and techniques for processing text and data at the linux
 command line by Jud Dagnall <https://github.com/thejud/text-processing-cookbook>
 
-I often find myelf processing text on the linux command line, things like, logfiles, data
+
+
+Table of Contents
+=================
+
+* [Overview](#overview)
+* [EXTRACTION](#extraction)
+* [Transformation tools](#transformation-tools)
+* [Grouping data](#grouping-data)
+* [csv/tsv:](#csvtsv)
+* [json](#json)
+* [Filter and select](#filter-and-select)
+* [AGGREGATION](#aggregation)
+* [Misc](#misc)
+* [Generating data](#generating-data)
+* [Sorting](#sorting)
+* [Misc](#misc-1)
+* [Batch and parallel execution with xargs and parallel](#batch-and-parallel-execution-with-xargs-and-parallel)
+
+Created by [gh-md-toc](https://github.com/ekalinin/github-markdown-toc.go)
+## Overview
+
+I often find myelf processing text files on the linux command line, things like, logfiles, data
 files, command output, etc... 
 
 Many of my data processing tasks follow this pattern:
@@ -26,18 +48,22 @@ Conventions: In code blocks, the command is left justified, while output from
 the command is indented by one space. I find it annoying to remove the "$ "
 prefix from commands when copying and pasting from a page. 
 
-I also use the `cat foo | bar` form rather than `bar < foo` because I've
-fat-fingered '>' instead of '<' one too many times, overwriting my source file.
-Additionally, I also use most of these scripts as part of a larger pipeline, so
-there's often another step. Here's an example of how a command and its output
-will be formatted.
+I also use the `cat foo | bar` form in many places rather than `bar < foo`
+because I've fat-fingered '>' instead of '<' one too many times, overwriting my
+source file. Additionally, I also use most of these scripts as part of a larger
+pipeline, so there's often another step. Here's an example of how a command and
+its output will be formatted.
 
     seq 10 | head -3
      1
      2
      3
+
+Finally, unless otherwise noted, the commands should handle more than one line
+of input even I only provide one line of input, e.g. 
+`echo foo,bar,baz | csvlook -H`.
  
-## Extracting data
+## EXTRACTION
 
 Extraction is a subset of transformation, but it is important enough to have
 its own section.
@@ -52,13 +78,12 @@ ls:
 
     ls -l | tail +2 | awk '{print $5}'
 
-### Extract by position with simple delimters via cut
+### Extract simple fields via cut
 
 cut is designed to extract fields from a line, given a single character
 delimter or position list. It will not split on patterns or multi-chararacter
 delimiters. Use one of the tools described below if you have more complicated
 data.
-
 
     cat > data <<EOF	
     foo:bar:baz
@@ -87,22 +112,47 @@ Note that cut apparently ignores field order:
      bcdf
      ehik
 
-### Extract by fixed field widths with awk (and in2csv)
+### Extract fixed-width fields with awk
 
 Sometimes you will have fields of known (but possibly variable) width, AKA
 fixed width format.
 
-awk can be used to extract the fields (you may need to install gnu awk)
+awk can be used to extract the fields (you may need to install gnu awk).
+Found via https://stackoverflow.com/a/28562381
 
     echo aaaaBBcccccDe | awk '$1=$1' FIELDWIDTHS='4 2 5 1 1' OFS=, 
     aaaa,BB,ccccc,D,e
 
-from https://stackoverflow.com/a/28562381
 
-Note that you can also use `in2csv` (part of `csvkit`) to convert fixed with
-to csv files with headers. It requires a schema file, so this is probably most
-practical if you find yourself doing this frequently for the same schema, or
-there are a LOT of fields and you probably need to iterate through them anyway.
+The `$1=$1` just forces awk to re-parse each line using the FIELDWIDTHDS you've specified. `OFS` is the output separator.
+
+Note that this recipe gets every field, and every character between each field.
+See the cut recipe above, or the in2csv approach if you only part of
+each line, or only osme fields.
+
+### Extract fixed-width fields with in2csv 
+
+You can also use `in2csv` (part of `csvkit`) to convert fixed with to csv files
+with headers. in2csv requires a schema file, so this is probably most practical
+if you find yourself doing this frequently for the same schema, or there are a
+LOT of fields and you probably need to iterate through them anyway.
+
+Define a schema file:
+
+    cat > fields.csv <<EOM
+     column,start,length
+     name,1,4
+     id,5,2
+     field1,7,5
+     section,12,1
+     category,13,1
+     EOM
+
+And then use the schema file to extract fixed-width fields:
+
+    echo aaaaBBcccccDe | in2csv -s fields.csv
+     name,id,field1,section,category
+     aaaa,BB,ccccc,D,e
 
 ### Convert whitespace-delimited columns to csv
 
@@ -192,11 +242,16 @@ If you don't know anything about regular expressions, this will all seem very
 mysterious, but if you do much text (or log) munging, it's worthwhile to learn
 the basics. 
 
-Also, like anything other part of your pipeline, it's fine to clean up your
+### Create several simple filters rather than one complicated ones
+
+
+Like anything other part of your pipeline, it's fine to clean up your
 output progressively with multiple smaller, simpler filters. I often do this
 because it's easier to apply fixes than to get one large regex just right.
 Naturally, if you're building a high-volume or production pipeline, it's
 probably worthwhile to take the time to get it right. 
+
+Here's the filter from the previous recipe broken down into several steps.
 
 Note that in this example I'm using tee /dev/stderr to give some diagnostic
 output at each stage in the pipeline so you can see how the line is
@@ -218,6 +273,47 @@ development.
      12:14:22.12352 ERROR
      12:14:22 ERROR
      12:14 ERROR
+
+
+Another advantage of several simple filters is that you don't have to spend time looking up the particular syntax.
+
+Recently, I've been dealing with billions of records in blocks of 10 million or so. In the logfiles for these tools, I use numbers with comma separation so it's a little easier to quickly see the exact magnitude of the numbers.
+
+Here's a partial log line. I typically use key=value format in my log as well, as they are both clear and easy to parse.
+
+  2017-11-20T15:33.16 DEBUG component.func line=9,241,821 per_sec=22,142
+
+I wanted to get the average of these per_second values, and so I wrote a little filter to extract the number:
+
+    head log -1 | perl -nE'/per_sec=(\S+)/ and say $1'
+     22142
+
+However that gave me output like "22,124", which wasn't yet ready for
+averaging. So I spend a minute or two fiddling with the filter and ended up with
+the follwing:
+
+    cat log | perl -nE'/per_sec=(\S+)/ and do { ( $a =$1 ) =~ s/,//g; say $a}'
+
+Not too bad, and with a bit more golfing I could have gotten it down to
+something shorter. However, splitting it up would have made it even easier:
+
+    head -1 log | perl -nE'/per_sec=(\S+)/ and say $1' | tr -d ','
+     22142
+
+The advantage of this approach is that I don't have to remember some special
+perl syntax. I spent too much time messing around, trying to get it right when
+it would have been simpler to refine it in two minimal filters that I could
+write correctly the first time (or with 5 seconds looking at the tr manpage
+after `tr ',' ""` didn't work.
+
+
+To conclude this recipe, to compute the average, I just piped the resulting
+values into the `stats` script, referenced below. Again, I could have written
+some more perl to aggregate values and then print the results at eof or in an
+end block, but I'd have spent a bit more time fiddling (or googling), and I
+really just had a simple 60 second question to see if the average.
+
+See if I add a recipe below for a quick and dirty average.
 
 ### collapse or replace spaces and newlines
 
@@ -800,18 +896,123 @@ once whatever is on the left side of the `..` is matched, the entire expression 
 after the right side is matched. Often, regexes are used on each side, e.g. `print if /^START/../^END/` to
 print all lines between started and ended.
 
-## Misc
+## AGGREGATION
 
+I use a wide variety of tools for aggregation ranging from relatively simple to
+complex and fully featured. 
 
-### stats 
+The ones that I tend to use most are:
 
-generate stats from numeric input
+### stats
 
-https://github.com/hjmangalam/scut
+`stats` is a compantion script to (scut)[https://github.com/hjmangalam/scut]
+that prints discriptive statistics for a single column of numeric inputs. 
+
+https://github.com/hjmangalam/scut/blob/master/stats
+
+    seq 10 | stats
+     Sum       55
+     Number    10
+     Mean      5.5
+     Median    5.5
+     Mode      FLAT  
+     NModes    No # was represented more than once
+     Min       1
+     Max       10
+     Range     9
+     Variance  9.16666666666667
+     Std_Dev   3.02765035409749
+     SEM       0.957427107756338
+     95% Conf  3.62344286879758 to 7.37655713120242
+               (for a normal distribution - see skew)
+     Skew      0
+               (skew is 0 for a symmetric dist)
+     Std_Skew  0
+     Kurtosis  -1.40181818181818
+                (K=3 for a normal dist)
+
+### csvstat
+
+`csvstat` is another part of the great `csvkit` toolbox. It prints descriptive
+stats from csv files. You can also process a single numeric column without a
+header by using the -H flag, although it's not particularly fast. Here's an example of using it to generate some stats on a single column, although it will do similar goodness for a csv file with multiple columns. Naturally, for non-numeric columns, there will not be as many 
+
+    jot -r 1500 1 999 | csvstat -H
+     /usr/local/lib/python2.7/site-packages/agate/table/from_csv.py:88: RuntimeWarning: Column names not specified. "('a',)" will be used as names.
+       1. "a"
+     
+      Type of data:          Number
+      Contains null values:  False
+      Unique values:         764
+      Smallest value:        1
+      Largest value:         999
+      Sum:                   746,595
+      Mean:                  497.73
+      Median:                494.5
+      StDev:                 288.637
+      Most common values:    370 (7x)
+                             994 (7x)
+                             770 (6x)
+                             316 (5x)
+                             488 (5x)
+     
+     Row count: 1500
+
+Here's an example of getting stats on a simple 2-column csv file. Notice that
+the error message has gone away because we added the headers.
+
+    (seq 10; jot -r -c 10 97 120 ) | column -c 20 | csvformat -t | ( echo "num,letter"; cat;) | tee sample.csv
+     num,letter
+      1,g
+      2,k
+      3,a
+      4,p
+      5,m
+      6,q
+      7,l
+      8,w
+      9,r
+      10,d
+
+Now, generate stats on all of the columns:
+
+    csvstat sample.csv
+        1. "num"
+      
+       Type of data:          Number
+       Contains null values:  False
+       Unique values:         10
+       Smallest value:        1
+       Largest value:         10
+       Sum:                   55
+       Mean:                  5.5
+       Median:                5.5
+       StDev:                 3.028
+       Most common values:    1 (1x)
+                              2 (1x)
+                              3 (1x)
+                              4 (1x)
+                              5 (1x)
+      
+        2. "letter"
+      
+       Type of data:          Text
+       Contains null values:  False
+       Unique values:         10
+       Longest value:         1 characters
+       Most common values:    a (1x)
+                              c (1x)
+                              f (1x)
+                              h (1x)
+                              k (1x)
+     Row count: 10 
 
 ### datamash
 
 do computation and stats on the command line
+
+
+## Misc
 
 
 ### Progress bars in pipes
@@ -907,6 +1108,8 @@ gnu sort can sort human units, like 10K, 100g.
      92K    ./.git/objects
      44K    ./.git/hooks
      20K    ./.git/logs
+
+## Misc
 
 ## Batch and parallel execution with xargs and parallel
 
