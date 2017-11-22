@@ -31,7 +31,7 @@ files, command output, etc...
 Many of my data processing tasks follow this pattern:
 
 * FILTER the input, selecting a set of lines that I want
-* TRANFORM the selected lines into a more useful format
+* TRANSFORM the selected lines into a more useful format
 * REFILTER or JOIN the transformed data to cleanup
 * AGGREGATE the data
 * DISPLAY the aggregate data in an informative way
@@ -157,16 +157,15 @@ And then use the schema file to extract fixed-width fields:
 ### Convert whitespace-delimited columns to csv
 
 This can be relatively simple. If you know that you data doesn't contain
-any additional commas, you can do a simple substition:
+any additional commas, you can do a simple substitution:
 
     perl -pe's/\h+/,/g';  # horizontal space, no newline
     perl -anE'say join(",", @F)'
 
-If you can't be sure that there won't be commas in the
-fields, you'll want to do proper quoting. Use a real
-csv tool.
+If you can't be sure that there won't be commas in the fields, you'll want to
+do proper quoting. Use a real csv tool. Here's a way to convert to tsv:
 
-    perl -anE'say join("\t", @F)' | csvformat -t -h
+    perl -anE'say join("\t", @F)' | csvformat -t -H
 
 ### cutting columns, other tools
 
@@ -1164,5 +1163,4 @@ See also: [sem](https://www.gnu.org/software/parallel/sem.html), part of the
 gnu parallel package, which allows you to easily limit the number of concurrent
 proceses without the complexity of parallel. Very useful for running N jobs in
 parallel inside a simple for loop.
-
 
