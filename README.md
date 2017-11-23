@@ -363,7 +363,7 @@ As described  in the perl section above, you can use perl to replace spaces with
  
 ### remove newlines with perl
 
-perl is also 
+Replace newlines, or vertical whitespace (a bit more cross-platform):
 
 seq 10 | perl -pe's/\v/ /g' 
  1 2 3 4 5 6 7 8 9 10 
@@ -373,6 +373,30 @@ Keep the final newline:
 seq 10 | perl -pe's/\v/ / unless eof'
 1 2 3 4 5 6 7 8 9 10
 
+
+### reshape text with rs
+
+A little tool I discovered recently is `rs` :
+
+- http://manpages.ubuntu.com/manpages/xenial/man1/rs.1.html
+- https://github.com/chneukirchen/rs
+- appears built-in on mac
+
+    seq 12 | rs 3 4
+     1   2   3   4
+     5   6   7   8
+     9   10  11  12
+
+    seq 6 | rs 1 0
+     1  2  3  4  5  6
+
+And just to show it is smart about collapsing arrays:
+
+    seq 6 | rs 2 3 | rs 1 0
+     1  2  3  4  5  6
+
+I'm just playing with this a bit, there are a lot more options, and it doesn't
+appear to be widely available.
 
 ### merge sort  multiple files of sorted data
 
@@ -397,6 +421,14 @@ paste a b c
  4    1.5    9
  5    2.0    10
 ```
+
+Note that you can also use paste to transform a single stream into multiple columns by including the desired number of stdin reads, `paste - -` or paste `- - - - -`:
+
+seq 10 | paste - - -
+ 1	2	3
+ 4	5	6
+ 7	8	9
+ 10		
 
 ### join: intersect two files
 
@@ -1010,6 +1042,55 @@ Now, generate stats on all of the columns:
 
 do computation and stats on the command line
 
+#### quick grouped stats with datamash
+
+For very simple summary stats, I often turn to the `stats` command or
+`csvstat`. However, if I want to do a bit more, like aggregate by one or more
+columns, `gnu datamash` is very useful. It handles large streamed data sets
+very quickly, and has a variety of statistical functions available. By default
+it breaks on continuous whitespace. Use the -t option to break on tabs,
+possibly after transforming data via `csvformat -T` if you have csv input data.
+
+From the [datamash manual](https://www.gnu.org/software/datamash/manual/datamash.html):
+
+cat > scores.txt << EOF
+Name        Subject          Score
+Bryan       Arts             68
+Isaiah      Arts             80
+Gabriel     Health-Medicine  100
+Tysza       Business         92
+Zackery     Engineering      54
+EOF
+
+datamash --sort --headers --group 2 mean 3 sstdev 3 < scores.txt
+ 
+GroupBy(Subject)   mean(Score)   sstdev(Score)
+Arts               68.9474       10.4215
+Business           87.3636       5.18214
+Engineering        66.5385       19.8814
+Health-Medicine    90.6154       9.22441
+Life-Sciences      55.3333       20.606
+Social-Sciences    60.2667       17.2273
+
+
+#### Cross tables/pivot tables with datamash
+
+    cat <<EOF | csvformat -T > data2.tsv
+    year,state,name,amount
+    2017,CA,"Foo, Bar",100
+    2017,CA,"Boo, Baz",200
+    2016,NJ,"Hoo, Dat",75
+    2016,CO,"Why, Not",33
+    EOF
+
+Create a pivot table that has the year column vs. the state column, summing
+amount column for each cell.
+
+    cat data2.tsv | datamash -H crosstab 1,2 sum 4
+     GroupBy(year)   GroupBy(state)  sum(amount)
+             CA  CO  NJ
+     2016    N/A 33  75
+     2017    300 N/A N/A
 
 ## Misc
 
@@ -1086,6 +1167,50 @@ random letters
 
     jot -r -c 10 97 122
 
+
+### Generating permutations with shuf
+
+`shuf`, part of `coreutils`, is useful for generating random permutations.
+
+shuf is best known for generating a "shuffled" version of a file, or selecting
+random lines. However, it can also be used to generate some sample data quickly
+given a few input values. The `-r` flags allows repeats. `-n 100` selects 100
+samples. `-e` treats additional command line parameters like input lines.
+
+In this example, I want to take 100 random selections 'foo', 'bar' or 'baz'
+
+    shuf -r -n 100 -e foo bar baz | head
+     baz
+     baz
+     baz
+     baz
+     bar
+     foo
+     foo
+     bar
+     bar
+     baz
+
+Here's a more complicated example of generating some test scores for some
+random student ids in random classes:
+
+
+    seq 100 | gshuf -n 100 -r > student_ids.txt
+    gshuf -n 100 -r -e math science art > classes.txt
+    seq 50 100 | gshuf -n 100 -r > scores.txt
+    (
+      echo "id class score";
+      paste -d " " student_ids.txt classes.txt scores.txt;
+    ) > report.tsv
+
+Now, with these scores, let's get some aggregate data
+
+    cat report.tsv | datamash -sH --wh --group 2 mean 3 | column -t
+     GroupBy(class)  mean(score)
+     art             73.214285714286
+     math            73.461538461538
+     science         72.21875
+ 
 ## Sorting
 
 ### gnusort on osx via coreutils
