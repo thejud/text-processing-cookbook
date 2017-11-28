@@ -3,26 +3,32 @@
 A cookbook of tools and techniques for processing text and data at the linux
 command line by Jud Dagnall <https://github.com/thejud/text-processing-cookbook>
 
-
-
 Table of Contents
 =================
 
-* [Overview](#overview)
-* [EXTRACTION](#extraction)
-* [Transformation tools](#transformation-tools)
-* [Grouping data](#grouping-data)
-* [csv/tsv:](#csvtsv)
-* [json](#json)
-* [Filter and select](#filter-and-select)
-* [AGGREGATION](#aggregation)
-* [Misc](#misc)
-* [Generating data](#generating-data)
-* [Sorting](#sorting)
-* [Misc](#misc-1)
-* [Batch and parallel execution with xargs and parallel](#batch-and-parallel-execution-with-xargs-and-parallel)
+* [text\-processing\-cookbook](#text-processing-cookbook)
+* [Table of Contents](#table-of-contents)
+  * [Overview](#overview)
+  * [EXTRACTION](#extraction)
+  * [Transformation tools](#transformation-tools)
+  * [Grouping data](#grouping-data)
+  * [csv/tsv:](#csvtsv)
+  * [json](#json)
+  * [Filter and select](#filter-and-select)
+  * [AGGREGATION](#aggregation)
+  * [Misc](#misc)
+  * [Generating data](#generating-data)
+  * [Comparing files](#comparing-files)
+  * [Sorting](#sorting)
+  * [Misc](#misc-1)
+  * [Batch and parallel execution with xargs and parallel](#batch-and-parallel-execution-with-xargs-and-parallel)
 
 Created by [gh-md-toc](https://github.com/ekalinin/github-markdown-toc.go)
+
+Rebuild with :
+
+    gh-md-toc --depth 2 README.md
+
 ## Overview
 
 I often find myelf processing text files on the linux command line, things like, logfiles, data
@@ -1333,15 +1339,17 @@ I use a few options frequently:
 
 * parallel execution of commands.
 
-    # gzip csv files, with four parallel processes.
-    # print lines as we execut them, and send one file
-    # at a time to each invocation
+```
+# gzip csv files, with four parallel processes.
+# print lines as we execut them, and send one file
+# at a time to each invocation
 
-    ls -t -1 *.csv | xargs -P 4 -t -n 1 gzip   
-     gzip 04.csv
-     gzip 03.csv
-     gzip 02.csv
-     gzip 01.csv
+ls -t -1 *.csv | xargs -P 4 -t -n 1 gzip   
+ gzip 04.csv
+ gzip 03.csv
+ gzip 02.csv
+ gzip 01.csv
+```
 
 Which leads into the next section, for a higher-powered alternative.
 
