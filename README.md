@@ -3,8 +3,6 @@
 A cookbook of tools and techniques for processing text and data at the linux
 command line by Jud Dagnall <https://github.com/thejud/text-processing-cookbook>
 
-
-
 Table of Contents
 =================
 
@@ -1150,6 +1148,7 @@ possibly after transforming data via `csvformat -T` if you have csv input data.
 
 From the [datamash manual](https://www.gnu.org/software/datamash/manual/datamash.html):
 
+```
 cat > scores.txt << EOF
 Name        Subject          Score
 Bryan       Arts             68
@@ -1158,9 +1157,10 @@ Gabriel     Health-Medicine  100
 Tysza       Business         92
 Zackery     Engineering      54
 EOF
-
+```
 datamash --sort --headers --group 2 mean 3 sstdev 3 < scores.txt
- 
+
+```
 GroupBy(Subject)   mean(Score)   sstdev(Score)
 Arts               68.9474       10.4215
 Business           87.3636       5.18214
@@ -1168,7 +1168,7 @@ Engineering        66.5385       19.8814
 Health-Medicine    90.6154       9.22441
 Life-Sciences      55.3333       20.606
 Social-Sciences    60.2667       17.2273
-
+```
 
 #### Cross tables/pivot tables with datamash
 
@@ -1198,6 +1198,18 @@ amount column for each cell.
 
 csvkit is an excellent set of tools (and python libraries) for working with CSV data. I work with a variety of csv data,
 and I use many of these frequently.
+
+I tend to use:
+
+* csvformat - pretty printing of csv files
+* csvcut - extract columns from CSV
+* csvsql - run SQL queries against CSV data
+* csvstats - summary statistics for CSV file
+
+
+Here's an introduction:
+
+https://source.opennews.org/articles/eleven-awesome-things-you-can-do-csvkit/
 
 ## json
 
