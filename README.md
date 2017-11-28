@@ -1201,7 +1201,7 @@ and I use many of these frequently.
 
 I tend to use:
 
-* csvformat - pretty printing of csv files
+* csvlook - pretty printing of csv files
 * csvcut - extract columns from CSV
 * csvsql - run SQL queries against CSV data
 * csvstats - summary statistics for CSV file
