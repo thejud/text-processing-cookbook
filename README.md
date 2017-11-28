@@ -9,8 +9,12 @@ Table of Contents
 =================
 
 * [text\-processing\-cookbook](#text-processing-cookbook)
-* [Table of Contents](#table-of-contents)
   * [Overview](#overview)
+  * [FILTER AND SELECT](#filter-and-select)
+    * [ag \- the silver searcher](#ag---the-silver-searcher)
+    * [searching via perl](#searching-via-perl)
+      * [select first and last lines](#select-first-and-last-lines)
+    * [range selection with perl's flip\-flop (\.\.) operator](#range-selection-with-perls-flip-flop--operator)
   * [EXTRACTION](#extraction)
     * [Extracting one or more columns with awk](#extracting-one-or-more-columns-with-awk)
     * [Extract simple fields via cut](#extract-simple-fields-via-cut)
@@ -22,7 +26,7 @@ Table of Contents
     * [f \- trivial field extractor](#f---trivial-field-extractor)
     * [scut \- swiss army knife of column cutters](#scut---swiss-army-knife-of-column-cutters)
     * [to extract columns from CSV data, use csvcut](#to-extract-columns-from-csv-data-use-csvcut)
-  * [Transformation tools](#transformation-tools)
+  * [TRANSFORMATION](#transformation)
     * [General transformation with perl \-pE and \-nE](#general-transformation-with-perl--pe-and--ne)
     * [Create several simple filters rather than one complicated ones](#create-several-simple-filters-rather-than-one-complicated-ones)
     * [collapse or replace spaces and newlines](#collapse-or-replace-spaces-and-newlines)
@@ -40,30 +44,26 @@ Table of Contents
     * [Use column to create a flexible number of columns to fill the width\.](#use-column-to-create-a-flexible-number-of-columns-to-fill-the-width)
     * [joining all lines with xargs](#joining-all-lines-with-xargs)
   * [Grouping data](#grouping-data)
-    * [Find distinct items, removing duplicates:](#find-distinct-items-removing-duplicates)
+    * [Find distinct items, removing duplicates](#find-distinct-items-removing-duplicates)
     * [Find unique items](#find-unique-items)
     * [Find duplicate items](#find-duplicate-items)
+    * [Find lines that are in one file, but not in another](#find-lines-that-are-in-one-file-but-not-in-another)
+    * [Split data into files based on a field](#split-data-into-files-based-on-a-field)
+  * [Frequency counts and distributions](#frequency-counts-and-distributions)
     * [get a frequency count of items, or find common items](#get-a-frequency-count-of-items-or-find-common-items)
     * [Find the n most common items](#find-the-n-most-common-items)
     * [Better frequency counts](#better-frequency-counts)
     * [Histogram of values](#histogram-of-values)
-    * [Split data into files based on a field](#split-data-into-files-based-on-a-field)
-  * [csv/tsv:](#csvtsv)
-  * [json](#json)
-    * [jq](#jq)
-  * [Filter and select](#filter-and-select)
-    * [ag \- the silver searcher](#ag---the-silver-searcher)
-    * [searching via perl](#searching-via-perl)
-      * [select first and last lines](#select-first-and-last-lines)
-    * [range selection with perl's flip\-flop (\.\.) operator](#range-selection-with-perls-flip-flop--operator)
-  * [AGGREGATION](#aggregation)
+  * [SPECIALIZED TOOLS FOR AGGREGATION, SUMMARY, ANALYSIS AND REPORTING](#specialized-tools-for-aggregation-summary-analysis-and-reporting)
     * [stats](#stats)
     * [csvstat](#csvstat)
     * [datamash](#datamash)
       * [quick grouped stats with datamash](#quick-grouped-stats-with-datamash)
       * [Cross tables/pivot tables with datamash](#cross-tablespivot-tables-with-datamash)
-  * [Misc](#misc)
-    * [Progress bars in pipes](#progress-bars-in-pipes)
+  * [csv/tsv:](#csvtsv)
+    * [csvkit](#csvkit)
+  * [json](#json)
+    * [jq](#jq)
   * [Generating data](#generating-data)
     * [Generating columns of data by column](#generating-columns-of-data-by-column)
     * [Generating columns of data by row](#generating-columns-of-data-by-row)
@@ -71,22 +71,21 @@ Table of Contents
     * [Generating random numbers](#generating-random-numbers)
       * [jot](#jot)
     * [Generating permutations with shuf](#generating-permutations-with-shuf)
-  * [Comparing files](#comparing-files)
-    * [Find lines that are in one file, but not in another](#find-lines-that-are-in-one-file-but-not-in-another)
   * [Sorting](#sorting)
     * [gnusort on osx via coreutils](#gnusort-on-osx-via-coreutils)
       * [sort items lexicographically, numerically (gnu sort)](#sort-items-lexicographically-numerically-gnu-sort)
       * [sort with size units, (k, m, etc)](#sort-with-size-units-k-m-etc)
-  * [Misc](#misc-1)
   * [Batch and parallel execution with xargs and parallel](#batch-and-parallel-execution-with-xargs-and-parallel)
     * [xargs](#xargs)
     * [GNU parallel](#gnu-parallel)
+  * [Misc](#misc)
+    * [Progress bars in pipes](#progress-bars-in-pipes)
 
 Created by [gh-md-toc](https://github.com/ekalinin/github-markdown-toc.go)
 
 Rebuild with :
 
-    gh-md-toc --depth 2 README.md
+    gh-md-toc README.md
 
 ## Overview
 
@@ -96,18 +95,26 @@ files, command output, etc...
 Many of my data processing tasks follow this pattern:
 
 * FILTER the input, selecting a set of lines that I want
-* TRANSFORM the selected lines into a more useful format
-* REFILTER or JOIN the transformed data to cleanup
+* EXTRACT/TRANSFORM the selected lines into a more useful format
 * AGGREGATE the data
-* DISPLAY the aggregate data in an informative way
+* REPEAT
 
 Due to the power and flexibility of linux pipes, I can quickly assemble a set
 of commands that are very effective on small to medium sized datasets (able to
 fit on a single machine). Without doing a lot of programming, I can do
 exploratory analysis, and answer many types of questions quickly.
 
-This document describes a variety of linux tools (standard and/or open
-source) that I've found useful for various parts of the process.
+I try to remember a set of techniques that I can put together on the fly to
+answer questions in under 60 seconds, often much less. More complicated
+questions can be answered in an actual program, or with higher-level tools.
+
+This document describes a variety of linux tools (standard and/or open source)
+that I've found useful for various parts of the process. They are also tools
+and techniques that I find myself re-discovering periodically, so this document
+is both a reminder to myself about things that have worked for me, and a
+potentially teaching tool for others. Note that there are multiple approaches
+to almost every recipe I've listed here.
+
 
 Conventions: In code blocks, the command is left justified, while output from
 the command is indented by one space. I find it annoying to remove the "$ "
@@ -127,6 +134,86 @@ its output will be formatted.
 Finally, unless otherwise noted, the commands should handle more than one line
 of input even I only provide one line of input, e.g. 
 `echo foo,bar,baz | csvlook -H`.
+
+## FILTER AND SELECT
+
+grep is the linux go-to search tool, supporting fast searching using patterns
+and regular expression.
+
+I'll cover some other options here, and assume a basic understanding of grep
+and regular expressions going forward.
+
+### ag - the silver searcher
+
+[ag - AKA the silver searcher](https://github.com/ggreer/the_silver_searcher) is
+a fast, flexible grep alternative to grep forcused on powerful searches with
+perl-compatible regular expressions and common default options like recursive
+search, avoiding .git files, and a few other nice features.
+
+`brew install the_silver_searcher` or `apt-get install silversearcher-ag`
+
+### searching via perl
+
+perl also has build in regular expressions, and a few other things that make it worthwhile.
+
+#### select first and last lines
+
+Found this recently: https://unix.stackexchange.com/a/139199
+
+    seq 10 |  perl -ne 'print if 1..1 or eof'
+
+It's worthwhile because it demonstrates some quirky perl features that are quite useful:
+
+`eof` is the end of the file, and is relatively self explanatory. What is interesting is that you can print
+the last line once eof is detected.
+
+The flip-flop operator is the `1..1` portion, is true starting on the first line only.
+
+### range selection with perl's flip-flop (..) operator
+
+Perl has an interesting operator called the flip-flop operator that can be used to select ranges of things.
+
+    echo "a b c d e f g" | tr ' ' "\n" | tee letters
+     a
+     b
+     c
+     d
+     e
+     f
+     g
+
+Now, select everything between the line starting with c, and the line starting with e:
+
+    perl -nE'print if /^c/../^e/' letters
+     c
+     d
+     e
+
+If integers are provided for one or both conditions, it is matched against the line number (AKA $.)
+
+    perl -nE'print if /^c/..5' letters
+     c
+     d
+     e
+
+    perl -nE'print if 3..5' letters
+     c
+     d
+     e
+
+And finally, you can continue to the end of the file by using eof:
+
+    perl -nE'print if /^e/..eof' letters
+     e
+     f
+     g
+     
+
+
+once whatever is on the left side of the `..` is matched, the entire expression becomes true. It becomes false
+after the right side is matched. Often, regexes are used on each side, e.g. `print if /^START/../^END/` to
+print all lines between started and ended.
+
  
 ## EXTRACTION
 
@@ -266,10 +353,10 @@ based on regexes](https://github.com/hjmangalam/scut)
 
 `csvcut` is part of the `csvkit` suite
 
-## Transformation tools
+## TRANSFORMATION
 
 perl is my tool of choice for many line-oriented transformations. It's worth
-learning a few tricks, and invensting some time in either perl, sed or awk.
+learning a few tricks, and invensting some time one or more of perl, sed or awk.
 
 ### General transformation with perl -pE and -nE
 
@@ -283,9 +370,10 @@ Here's an example of removing the subsecond timestamp from a log line:
     | perl -pe's/\.(\d*) / /'  
      2017-11-01T12:14:22 ERROR critical
 
-You can also extract portions of the line by matching against the entire line. Here's
-a moderately complicated regular expression that extracts the hour:minute pair, and the log level (ERROR or FATAL). This
-might be the first step in analyzing errors per minute.
+You can also extract portions of the line by matching against the entire line.
+Here's a moderately complicated regular expression that extracts the
+hour:minute pair, and the log level (ERROR or FATAL). This might be the first
+step in analyzing errors per minute.
 
     printf "2017-11-01T12:14:22.12352 ERROR critical" \
     | perl -pe's/^.*?T(\d\d:\d\d):\S+ (ERROR|FATAL) .*$/$1 $2/'
@@ -339,15 +427,20 @@ development.
      12:14 ERROR
 
 
-Another advantage of several simple filters is that you don't have to spend time looking up the particular syntax.
+Another advantage of several simple filters is that you don't have to spend
+time looking up the particular syntax.
 
-Recently, I've been dealing with billions of records in blocks of 10 million or so. In the logfiles for these tools, I use numbers with comma separation so it's a little easier to quickly see the exact magnitude of the numbers.
+Recently, I've been dealing with billions of records in blocks of 10 million or
+so. In the logfiles for these tools, I use numbers with comma separation so
+it's a little easier to quickly see the exact magnitude of the numbers.
 
-Here's a partial log line. I typically use key=value format in my log as well, as they are both clear and easy to parse.
+Here's a partial log line. I typically use key=value format in my log as well,
+as they are both clear and easy to parse.
 
   2017-11-20T15:33.16 DEBUG component.func line=9,241,821 per_sec=22,142
 
-I wanted to get the average of these per_second values, and so I wrote a little filter to extract the number:
+I wanted to get the average of these per_second values, and so I wrote a little
+filter to extract the number:
 
     head log -1 | perl -nE'/per_sec=(\S+)/ and say $1'
      22142
@@ -376,8 +469,6 @@ values into the `stats` script, referenced below. Again, I could have written
 some more perl to aggregate values and then print the results at eof or in an
 end block, but I'd have spent a bit more time fiddling (or googling), and I
 really just had a simple 60 second question to see if the average.
-
-See if I add a recipe below for a quick and dirty average.
 
 ### collapse or replace spaces and newlines
 
@@ -487,7 +578,9 @@ paste a b c
  5    2.0    10
 ```
 
-Note that you can also use paste to transform a single stream into multiple columns by including the desired number of stdin reads, `paste - -` or paste `- - - - -`:
+Note that you can also use paste to transform a single stream into multiple
+columns by including the desired number of stdin reads, `paste - -` or
+paste `- - - - -`:
 
 seq 10 | paste - - -
  1	2	3
@@ -780,7 +873,7 @@ See below for the section on xargs.
 
 ## Grouping data
 
-### Find distinct items, removing duplicates:
+### Find distinct items, removing duplicates
 
     cat data | sort -u
 
@@ -793,6 +886,77 @@ See below for the section on xargs.
 ### Find duplicate items
 
     cat data | sort | uniq -d
+
+### Find lines that are in one file, but not in another
+
+Sometimes I have a list of all files, and then a list of files that I want to keep, and I need to subtract the keepers aand work on the rest.
+
+If both files are sorted (or can be sorted), then you can use either the `comm` utility, or `diff`.
+
+comm takes two files, and reports of files that are in a, b or both.
+
+So, to file files that are in `all`, but not in 'keep', tell comm to suppress the lines in the second file (-2), and in both files (-3):
+
+    comm -23 all keep
+
+You can also grep the output of diff, which is most useful if you want to get a
+bit of context around missing lines. Lines removed from the first file are
+prefixed with a ' <', or '-' in unified (-u) mode. You'll need to do a little
+post-processing on the output to remove the diff characters, so `comm` is often
+an easier choice.
+
+    diff -u all keep | egrep '^-' 
+
+If it's not practical to sort the files, then you may need to do a little
+actual coding to put the lines from one file into a dictionary or set, and
+remove the lines from the other.
+
+
+### Split data into files based on a field
+
+awk has a really simple way to split data into separate files based on a field. 
+
+`{print > $1}`, which prints the line into a file named in the first column.
+
+Here's a more concrete example, using this techinque in conjuction with a program called `average` that, not surprisingly, computes the average of its inputs. The input is a request rate, and the date portion of a timestamp extracted from a log file:
+
+The input date:
+
+    10:50:41 $ head -5 /tmp/a
+     2017-11-22	17918
+     2017-11-22	22122
+     2017-11-22	23859
+     2017-11-22	24926
+     2017-11-22	25590
+
+Put each rate into a file named for the day:
+
+    10:51:12 $ awk '{ print $2>$1}' /tmp/a
+
+Verify the files:
+
+    10:51:30 $ ls
+     2017-11-22  2017-11-23  2017-11-24  2017-11-25  2017-11-26  2017-11-27
+
+Finally, compute an average based on a special purpose program (or your own
+oneliner)
+
+    10:51:39 $ for f in 2017*;do  echo -n "$f "; average $f; done;
+     2017-11-22 28623.5339943343
+     2017-11-23 32164.1470966969
+     2017-11-24 41606.0775438271
+     2017-11-25 44660.3379886831
+     2017-11-26 43758.5492501466
+     2017-11-27 43080.1879794521
+
+Naturally, there are other ways to do this specific computation, 
+e.g. `cat /tmp/a | datamash --group 1 mean 2`, 
+but sometimes it's useful to split the files for later processing.
+
+See http://www.theunixschool.com/2012/06/awk-10-examples-to-split-file-into.html for some more examples.
+
+
+## Frequency counts and distributions
 
 ### get a frequency count of items, or find common items
 
@@ -854,191 +1018,16 @@ Generate 1000 random values from 0-300 and generate a histogram:
 
 Note: I removed some of the bucket indicators to make the lines shorter.
 
-### Split data into files based on a field
-
-awk has a really simple way to split data into separate files based on a field. 
-
-`{print > $1}`, which prints the line into a file named in the first column.
-
-Here's a more concrete example, using this techinque in conjuction with a program called `average` that, not surprisingly, computes the average of its inputs. The input is a request rate, and the date portion of a timestamp extracted from a log file:
-
-The input date:
-
-    10:50:41 $ head -5 /tmp/a
-     2017-11-22	17918
-     2017-11-22	22122
-     2017-11-22	23859
-     2017-11-22	24926
-     2017-11-22	25590
-
-Put each rate into a file named for the day:
-
-    10:51:12 $ awk '{ print $2>$1}' /tmp/a
-
-Verify the files:
-
-    10:51:30 $ ls
-     2017-11-22  2017-11-23  2017-11-24  2017-11-25  2017-11-26  2017-11-27
-
-Finally, compute an average based on a special purpose program (or your own
-oneliner)
-
-    10:51:39 $ for f in 2017*;do  echo -n "$f "; average $f; done;
-     2017-11-22 28623.5339943343
-     2017-11-23 32164.1470966969
-     2017-11-24 41606.0775438271
-     2017-11-25 44660.3379886831
-     2017-11-26 43758.5492501466
-     2017-11-27 43080.1879794521
-
-Naturally, there are other ways to do this specific computation, 
-e.g. `cat /tmp/a | datamash --group 1 mean 2`, 
-but sometimes it's useful to split the files for later processing.
-
-See http://www.theunixschool.com/2012/06/awk-10-examples-to-split-file-into.html for some more examples.
-
-
-## csv/tsv:
-
-  - csvkit
-
-## json
-
-- jq - CLI query language for json. Doesn't handle very large ints.
-- jsonpp, json_pp - pretty printing, 
-- `python -m json.tool` - pretty printing. Doesn't handle json per lin
-
-### jq
-
-Here's some sample json (created using the jo json authoring tool)
-
-    { jo user[name]=jud user[id]=17 ; jo user[name]=joe user[id]=22;} | tee json1
-    {"user":{"name":"jud","id":17}}
-    {"user":{"name":"joe","id":22}}
-
-jq has a fully-featured query language, but since I don't use the more advanced features very often,
-I just remember how to index down into object:
-
-    # extract user.name from every object
-    jq .user.name json1
-    "jud"
-    "joe"
-
-    # get the raw (unquoted) values.
-    jq -r .user.name json1
-    jud
-    joe
-
-I nearly always use jq for my json needs. However, I've recently been dealing with json that contains very large numeric ids.
-Unfortuntely jq rounds large integers.
-
-
-    echo '{"a":11111222223333344444}' | jq .
-    {
-      "a": 11111222223333345000
-    }
-
-    echo '{"a":11111222223333344444}' | python -m json.tool
-    {
-        "a": 11111222223333344444
-    }
-
-So I have been using other tools to pretty print json, like jsonpp and/or json_pp.
-
-The python json.tool pretty printer handles big ints, but doesn't handle newline delimited json. I just saw the newlinejson package, which could help.
-Here's a simple python solution:
-
-
-    #!/usr/bin/env python
-    from __future__ import print_function
-    import fileinput
-    import json
-    for line in fileinput.input():
-        print(json.dumps(json.loads(line.rstrip('\r\n')), indent=2))
-
-
-## Filter and select
-
-grep is the linux go-to search tool, supporting fast searching using patterns
-and regular expression.
-
-I'll cover some other options here.
-
-### ag - the silver searcher
-
-[ag - AKA the silver searcher](https://github.com/ggreer/the_silver_searcher) is
-a fast, flexible grep alternative to grep forcused on powerful searches with
-perl-compatible regular expressions and common default options like recursive
-search, avoiding .git files, and a few other nice features.
-
-`brew install the_silver_searcher` or `apt-get install silversearcher-ag`
-
-### searching via perl
-
-perl also has build in regular expressions, and a few other things that make it worthwhile.
-
-#### select first and last lines
-
-Found this recently: https://unix.stackexchange.com/a/139199
-
-    seq 10 |  perl -ne 'print if 1..1 or eof'
-
-It's worthwhile because it demonstrates some quirky perl features that are quite useful:
-
-`eof` is the end of the file, and is relatively self explanatory. What is interesting is that you can print
-the last line once eof is detected.
-
-The flip-flop operator is the `1..1` portion, is true starting on the first line only.
-
-### range selection with perl's flip-flop (..) operator
-
-Perl has an interesting operator called the flip-flop operator that can be used to select ranges of things.
-
-    echo "a b c d e f g" | tr ' ' "\n" | tee letters
-     a
-     b
-     c
-     d
-     e
-     f
-     g
-
-Now, select everything between the line starting with c, and the line starting with e:
-
-    perl -nE'print if /^c/../^e/' letters
-     c
-     d
-     e
-
-If integers are provided for one or both conditions, it is matched against the line number (AKA $.)
-
-    perl -nE'print if /^c/..5' letters
-     c
-     d
-     e
-
-    perl -nE'print if 3..5' letters
-     c
-     d
-     e
-
-And finally, you can continue to the end of the file by using eof:
-
-    perl -nE'print if /^e/..eof' letters
-     e
-     f
-     g
-     
-
-
-once whatever is on the left side of the `..` is matched, the entire expression becomes true. It becomes false
-after the right side is matched. Often, regexes are used on each side, e.g. `print if /^START/../^END/` to
-print all lines between started and ended.
-
-## AGGREGATION
+## SPECIALIZED TOOLS FOR AGGREGATION, SUMMARY, ANALYSIS AND REPORTING
 
 I use a wide variety of tools for aggregation ranging from relatively simple to
-complex and fully featured. 
+complex and fully featured. Once I have filtered and extracted the data I want,
+I have a set of core tools I use for most summarization. Some are small,
+single-file scripts that I just copy to a new machine if needed, while others
+are full-blown packages.
+
+Note that I won't really talk about actual databases, as the data import/export process usually ends up
+being a significant factor (except for csv data via `csvquery`)
 
 The ones that I tend to use most are:
 
@@ -1200,26 +1189,73 @@ amount column for each cell.
      2016    N/A 33  75
      2017    300 N/A N/A
 
-## Misc
 
 
-### Progress bars in pipes
 
-Sometimes I am sending a lot of data through a pipeline, and I'd like to have
-an idea of how quickly it is proceeding, or if it's still going at all.
+## csv/tsv:
 
-There's a useful command that I discovered for this called pv. `brew install pv` or `apt-get install pv`
+### csvkit
 
-    seq 50111222 | pv -lapbet | wc -l
-     23.1M 0:00:07 [3.29M/s] [                  <=>
+csvkit is an excellent set of tools (and python libraries) for working with CSV data. I work with a variety of csv data,
+and I use many of these frequently.
 
-pv can produce a litle curses progress meter that updates as you go. It has a lot of formatting options,
-including the lines format, the default bytes format, ETA and other goodies.
+## json
 
-You can also create a trivial monitor in perl:
+- jq - CLI query language for json. Doesn't handle very large ints.
+- jsonpp, json_pp - pretty printing, 
+- `python -m json.tool` - pretty printing. Doesn't handle json per lin
 
-    # print the line number ever 1MM lines
-    perl -pE'say STDERR $. if $. % 1_000_000 == 0'
+### jq
+
+Here's some sample json (created using the jo json authoring tool)
+
+    { jo user[name]=jud user[id]=17 ; jo user[name]=joe user[id]=22;} | tee json1
+    {"user":{"name":"jud","id":17}}
+    {"user":{"name":"joe","id":22}}
+
+jq has a fully-featured query language, but since I don't use the more advanced features very often,
+I just remember how to index down into object, and print out the raw values:
+
+    # pretty print with colorization
+    jq . myfile.json
+
+    # extract user.name from every object
+    jq .user.name myfile.json
+    "jud"
+    "joe"
+
+    # get the raw (unquoted) values.
+    jq -r .user.name json1
+    jud
+    joe
+
+I nearly always use jq for my json needs. However, I've recently been dealing with json that contains very large numeric ids.
+Unfortuntely jq rounds large integers.
+
+
+    echo '{"a":11111222223333344444}' | jq .
+    {
+      "a": 11111222223333345000
+    }
+
+    echo '{"a":11111222223333344444}' | python -m json.tool
+    {
+        "a": 11111222223333344444
+    }
+
+So I have been using other tools to pretty print json, like jsonpp and/or json_pp.
+
+The python json.tool pretty printer handles big ints, but doesn't handle newline delimited json. I just saw the newlinejson package, which could help.
+Here's a simple python solution:
+
+
+    #!/usr/bin/env python
+    from __future__ import print_function
+    import fileinput
+    import json
+    for line in fileinput.input():
+        print(json.dumps(json.loads(line.rstrip('\r\n')), indent=2))
+
 
 ## Generating data
 
@@ -1319,33 +1355,6 @@ Now, with these scores, let's get some aggregate data
      math            73.461538461538
      science         72.21875
  
-## Comparing files
-
-### Find lines that are in one file, but not in another
-
-Sometimes I have a list of all files, and then a list of files that I want to keep, and I need to subtract the keepers aand work on the rest.
-
-If both files are sorted (or can be sorted), then you can use either the `comm` utility, or `diff`.
-
-comm takes two files, and reports of files that are in a, b or both.
-
-So, to file files that are in `all`, but not in 'keep', tell comm to suppress the lines in the second file (-2), and in both files (-3):
-
-    comm -23 all keep
-
-You can also grep the output of diff, which is most useful if you want to get a
-bit of context around missing lines. Lines removed from the first file are
-prefixed with a ' <', or '-' in unified (-u) mode. You'll need to do a little
-post-processing on the output to remove the diff characters, so `comm` is often
-an easier choice.
-
-    diff -u all keep | egrep '^-' 
-
-If it's not practical to sort the files, then you may need to do a little
-actual coding to put the lines from one file into a dictionary or set, and
-remove the lines from the other.
-
-
 ## Sorting
 
 ### gnusort on osx via coreutils
@@ -1368,7 +1377,6 @@ gnu sort can sort human units, like 10K, 100g.
      44K    ./.git/hooks
      20K    ./.git/logs
 
-## Misc
 
 ## Batch and parallel execution with xargs and parallel
 
@@ -1425,4 +1433,24 @@ See also: [sem](https://www.gnu.org/software/parallel/sem.html), part of the
 gnu parallel package, which allows you to easily limit the number of concurrent
 proceses without the complexity of parallel. Very useful for running N jobs in
 parallel inside a simple for loop.
+
+## Misc
+
+### Progress bars in pipes
+
+Sometimes I am sending a lot of data through a pipeline, and I'd like to have
+an idea of how quickly it is proceeding, or if it's still going at all.
+
+There's a useful command that I discovered for this called pv. `brew install pv` or `apt-get install pv`
+
+    seq 50111222 | pv -lapbet | wc -l
+     23.1M 0:00:07 [3.29M/s] [                  <=>
+
+pv can produce a litle curses progress meter that updates as you go. It has a lot of formatting options,
+including the lines format, the default bytes format, ETA and other goodies.
+
+You can also create a trivial monitor in perl:
+
+    # print the line number ever 1MM lines
+    perl -pE'say STDERR $. if $. % 1_000_000 == 0'
 
