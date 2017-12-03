@@ -7,14 +7,16 @@ Table of Contents
 =================
 
 * [text\-processing\-cookbook](#text-processing-cookbook)
+* [Table of Contents](#table-of-contents)
   * [Overview](#overview)
   * [FILTER AND SELECT](#filter-and-select)
     * [ag \- the silver searcher](#ag---the-silver-searcher)
     * [searching via perl](#searching-via-perl)
       * [select first and last lines](#select-first-and-last-lines)
-    * [range selection with perl's flip\-flop (\.\.) operator](#range-selection-with-perls-flip-flop--operator)
+      * [range selection with perl's flip\-flop (\.\.) operator](#range-selection-with-perls-flip-flop--operator)
   * [EXTRACTION](#extraction)
     * [Extracting one or more columns with awk](#extracting-one-or-more-columns-with-awk)
+    * [Field extraction via perl \-anE](#field-extraction-via-perl--ane)
     * [Extract simple fields via cut](#extract-simple-fields-via-cut)
     * [Extract by character position with cut](#extract-by-character-position-with-cut)
     * [Extract fixed\-width fields with awk](#extract-fixed-width-fields-with-awk)
@@ -87,7 +89,7 @@ Rebuild with :
 
 ## Overview
 
-I often find myelf processing text files on the linux command line, things like, logfiles, data
+I often find myelf processing text files on the linux command line: things like, logfiles, data
 files, command output, etc... 
 
 Many of my data processing tasks follow this pattern:
@@ -95,7 +97,6 @@ Many of my data processing tasks follow this pattern:
 * FILTER the input, selecting a set of lines that I want
 * EXTRACT/TRANSFORM the selected lines into a more useful format
 * AGGREGATE the data
-* REPEAT
 
 Due to the power and flexibility of linux pipes, I can quickly assemble a set
 of commands that are very effective on small to medium sized datasets (able to
@@ -107,12 +108,11 @@ answer questions in under 60 seconds, often much less. More complicated
 questions can be answered in an actual program, or with higher-level tools.
 
 This document describes a variety of linux tools (standard and/or open source)
-that I've found useful for various parts of the process. They are also tools
+that I have found useful for various parts of the process. They are also tools
 and techniques that I find myself re-discovering periodically, so this document
 is both a reminder to myself about things that have worked for me, and a
 potentially teaching tool for others. Note that there are multiple approaches
 to almost every recipe I've listed here.
-
 
 Conventions: In code blocks, the command is left justified, while output from
 the command is indented by one space. I find it annoying to remove the "$ "
@@ -136,7 +136,7 @@ of input even I only provide one line of input, e.g.
 ## FILTER AND SELECT
 
 grep is the linux go-to search tool, supporting fast searching using patterns
-and regular expression.
+and regular expressions.
 
 I'll cover some other options here, and assume a basic understanding of grep
 and regular expressions going forward.
@@ -152,24 +152,66 @@ search, avoiding .git files, and a few other nice features.
 
 ### searching via perl
 
-perl also has build in regular expressions, and a few other things that make it worthwhile.
+perl also has built in regular expressions, and a few other things that make it worthwhile. It is installed
+on most systems by default. Whatever tool you end up uses, it's useful to learn enough of the feature
+set that you at least know what is possible, and when a task is likely to be accomplished quickly (e.g. the top
+result on stack overflow)
+
+See [General transformation with perl \-pE and \-nE](#general-transformation-with-perl--pe-and--ne)
+for using perl as a general purpose filter.
+
+grep (or ag) is great when you want to select lines based on a pattern.
+Sometimes it's useful to select ranges of lines based on their position or by a
+delimiter.
 
 #### select first and last lines
 
-Found this recently: https://unix.stackexchange.com/a/139199
+    seq 10 | perl -nE'print if $. == 1 or eof'
+     1
+     10
 
-    seq 10 |  perl -ne 'print if 1..1 or eof'
+This example demonstrates some quirky perl features that are quite useful:
 
-It's worthwhile because it demonstrates some quirky perl features that are quite useful:
+-n loops through the entire input, line by line, without printing anything. 
+
+-E evaluates the given expression for each line, and `-E` (instead of the older `-e`) enables
+modern perl features like `say`.
+
+The print function will print the current line by default.
 
 `eof` is the end of the file, and is relatively self explanatory. What is interesting is that you can print
 the last line once eof is detected.
 
-The flip-flop operator is the `1..1` portion, is true starting on the first line only.
+Found an altenative recently that uses the perl flip-flop operator, described below: https://unix.stackexchange.com/a/139199
 
-### range selection with perl's flip-flop (..) operator
+    seq 10 |  perl -ne 'print if 1..1 or eof'
+     1
+     10
 
-Perl has an interesting operator called the flip-flop operator that can be used to select ranges of things.
+Similarly, it can be done in awk:
+
+    seq 10 | awk 'NR=1; END {print}'
+
+Awk loops through the input, and prints the line if the expression evaluates as true. Like perl, it also provides
+and BEGIN and END block for special operations. However, in awk, unlink perl, the last line can be printed
+in the end block.
+
+Note that all of these methods require reading the entire input, e.g. in a pipe. If you simply want the first line of a file,
+using head and tail can be MUCH faster.
+
+    head -1 myfile
+    tail -1 myfile
+
+or if you want to sent both lines into another command, you can use a subshell or code block in bash:
+
+    seq 10 > first_ten
+    { head -1 first_ten; tail -1 first_ten; } | sort -nr
+      10
+      1
+
+#### range selection with perl's flip-flop (..) operator
+
+Perl has an interesting operator called the range or flip-flop operator that can be used to select ranges of things.
 
     echo "a b c d e f g" | tr ' ' "\n" | tee letters
      a
@@ -199,19 +241,18 @@ If integers are provided for one or both conditions, it is matched against the l
      d
      e
 
-And finally, you can continue to the end of the file by using eof:
+And finally, you can continue to the end of the file by using eof (note that it is inclusive):
 
     perl -nE'print if /^e/..eof' letters
      e
      f
      g
      
-
-
-once whatever is on the left side of the `..` is matched, the entire expression becomes true. It becomes false
-after the right side is matched. Often, regexes are used on each side, e.g. `print if /^START/../^END/` to
-print all lines between started and ended.
-
+once whatever is on the left side of the `..` is matched, the entire expression
+becomes true. It becomes false after the right side is matched. Often, regexes
+are used on each side, e.g. `print if /^START/../^END/` to print all lines
+between START and END. There are a few tips and tricks, described in very gory
+detail in the perl docs: https://perldoc.perl.org/perlop.html#Range-Operators
  
 ## EXTRACTION
 
@@ -222,17 +263,37 @@ perl, sed and awk are all common tools for both selection and extraction
 
 ### Extracting one or more columns with awk
 
-one trivial but common use of awk is to extract one or more columns from text
-with variable whitespace, like formatted text or the output of a command like
-ls:
+one trivial but common use of awk is to extract column(s) from text with
+variable whitespace, like formatted text or the output of a command like `ls -l`:
 
     ls -l | tail +2 | awk '{print $5}'
+
+To print multiple columns, remember to join with ',', not ' ':
+
+    ls -l | tail +2 | awk '{print $2,$1}'
+
+Sometimes you just want to print the last column, when you don't know (or don't
+want to count) how many columns there are. Use the number of fields `$NF`
+variable:
+
+    ls -l | tail +2 | awk '{print $NF}'
+
+### Field extraction via perl -anE 
+
+Perl also has an autosplit mode, -a, which can break up each input line by
+whitespace and put it into an array @F. Index the array to pick out columns.
+Because perl allows negative array indexing to pick elements, I often use this
+to select the last, or n from the last, fields.
+
+Print the 2nd from the last column:
+
+    ls -l | perl -anE'say $F[-2]'
 
 ### Extract simple fields via cut
 
 cut is designed to extract fields from a line, given a single character
-delimter or position list. It will not split on patterns or multi-chararacter
-delimiters. Use one of the tools described below if you have more complicated
+delimiter or position list. It will not split on patterns or multi-chararacter
+delimiters. Use `awk` or one of the tools described below if you have more complicated
 data.
 
     cat > data <<EOF	
@@ -250,7 +311,6 @@ Note that cut apparently ignores field order:
     foo:baz
     fun:today
 
-
 ### Extract by character position with cut
 
     cat > alpha <<EOF
@@ -264,28 +324,29 @@ Note that cut apparently ignores field order:
 
 ### Extract fixed-width fields with awk
 
-Sometimes you will have fields of known (but possibly variable) width, AKA
+Sometimes you will have fields of known (but possibly different) widths, AKA
 fixed width format.
 
 awk can be used to extract the fields (you may need to install gnu awk).
-Found via https://stackoverflow.com/a/28562381
+Found this via https://stackoverflow.com/a/28562381
 
     echo aaaaBBcccccDe | awk '$1=$1' FIELDWIDTHS='4 2 5 1 1' OFS=, 
     aaaa,BB,ccccc,D,e
 
-
-The `$1=$1` just forces awk to re-parse each line using the FIELDWIDTHDS you've specified. `OFS` is the output separator.
+The `$1=$1` just forces awk to re-parse each line using the FIELDWIDTHDS you've
+specified. `OFS` is the output field separator.
 
 Note that this recipe gets every field, and every character between each field.
-See the cut recipe above, or the in2csv approach if you only part of
-each line, or only osme fields.
+See the cut recipe above, or the [in2csv approach](#extract-fixed-width-fields-with-in2csv) 
+if you only part of each line, or only some fields.
 
 ### Extract fixed-width fields with in2csv 
 
-You can also use `in2csv` (part of `csvkit`) to convert fixed with to csv files
-with headers. in2csv requires a schema file, so this is probably most practical
-if you find yourself doing this frequently for the same schema, or there are a
-LOT of fields and you probably need to iterate through them anyway.
+You can also use `in2csv` (part of [csvkit](https://csvkit.readthedocs.io/)) to
+convert fixed with to csv files with headers. in2csv requires a schema file, so
+this is probably most practical if you find yourself doing this frequently for
+the same schema, or there are a LOT of fields and you probably need to iterate
+through them anyway.
 
 Define a schema file:
 
@@ -309,13 +370,20 @@ And then use the schema file to extract fixed-width fields:
 This can be relatively simple. If you know that you data doesn't contain
 any additional commas, you can do a simple substitution:
 
-    perl -pe's/\h+/,/g';  # horizontal space, no newline
+    # squeeze multiple spaces
+    tr -s ' ' ,
+    
+    perl -pE's/\h+/,/g';  # horizontal space, no newline
+
     perl -anE'say join(",", @F)'
+
 
 If you can't be sure that there won't be commas in the fields, you'll want to
 do proper quoting. Use a real csv tool. Here's a way to convert to tsv:
 
     perl -anE'say join("\t", @F)' | csvformat -t -H
+
+    tr -s ' ' '\t' | csvformat -t -H
 
 ### cutting columns, other tools
 
@@ -329,7 +397,6 @@ a few other tools on hand.
 f is a tool with a laser-sharp focus: Extract a single column from a whitespace
 delimited file. If you find yourself going often to awk for something like `awk
 '{print $3}'`, then add f to your arsenal.
-
 
     # quickly extract one column
     printf "the quick brown fox\nand so it goes" | f 3
@@ -349,7 +416,8 @@ based on regexes](https://github.com/hjmangalam/scut)
 
 ### to extract columns from CSV data, use csvcut
 
-`csvcut` is part of the `csvkit` suite
+`csvcut` is part of the `csvkit` suite. It allows you to process CSV and TSV files,
+and you can specify fields by name or by index.
 
 ## TRANSFORMATION
 
@@ -362,11 +430,18 @@ The perl -p option turns on filter mode. Any changes made by the expression
 argument (-e or -E) will be applied, and then each line will be printed. Using
 regular expressions is a good way to remove parts of the line, or add to it.
 
-Here's an example of removing the subsecond timestamp from a log line:
+If you don't know anything about regular expressions, this will all seem very
+mysterious, but if you do much text (or log) munging, it's worthwhile to learn
+the basics. 
+
+Here's an example of removing the date prefix of a timestamp from a log file,
+which I have done when I want to compare activity at various times across several days.
+My expression is a substitution: s/XXX/YYY/ and I'm replacing everything up to the first T
+with the empty string:
 
     printf "2017-11-01T12:14:22.12352 ERROR critical" \
-    | perl -pe's/\.(\d*) / /'  
-     2017-11-01T12:14:22 ERROR critical
+    | perl -pe's/^.*?T//'  
+     12:14:22.12352 ERROR critical
 
 You can also extract portions of the line by matching against the entire line.
 Here's a moderately complicated regular expression that extracts the
@@ -379,23 +454,19 @@ step in analyzing errors per minute.
 
 I tend to prefer to only take the parts I want, rather than replacing the
 entire line. perl's `-n` flag loops over all the input, but doesn't print
-anything. The -E flag is a modern version of the -e flag, and just makes some
-of the more modern perl features available. I use it so that I can use "say"
-instead of "print", which is shorter and adds the trailing newline.
+anything. The -E flag is an updated of the -e flag, and just makes some
+of the more modern perl features available. I use `-E` mostly so that I can use
+`say $var` instead of `print "$var\n"`, because say is shorter and automically
+adds a trailing newline.
 
 
     printf "2017-11-01T12:14:22.12352 ERROR critical" \
     | perl -nE'/T(\d\d:\d\d):\S+ (ERROR|FATAL)/ and say "$1 $2"'
      12:14 ERROR
 
-If you don't know anything about regular expressions, this will all seem very
-mysterious, but if you do much text (or log) munging, it's worthwhile to learn
-the basics. 
-
 ### Create several simple filters rather than one complicated ones
 
-
-Like anything other part of your pipeline, it's fine to clean up your
+Like any other part of your pipeline, it's fine to clean up your
 output progressively with multiple smaller, simpler filters. I often do this
 because it's easier to apply fixes than to get one large regex just right.
 Naturally, if you're building a high-volume or production pipeline, it's
@@ -403,7 +474,7 @@ probably worthwhile to take the time to get it right.
 
 Here's the filter from the previous recipe broken down into several steps.
 
-Note that in this example I'm using tee /dev/stderr to give some diagnostic
+Note that in this example I'm using `tee /dev/stderr` to give some diagnostic
 output at each stage in the pipeline so you can see how the line is
 progressively refined. You would only want to do that for debugging or
 development. 
@@ -424,7 +495,6 @@ development.
      12:14:22 ERROR
      12:14 ERROR
 
-
 Another advantage of several simple filters is that you don't have to spend
 time looking up the particular syntax.
 
@@ -435,22 +505,23 @@ it's a little easier to quickly see the exact magnitude of the numbers.
 Here's a partial log line. I typically use key=value format in my log as well,
 as they are both clear and easy to parse.
 
-  2017-11-20T15:33.16 DEBUG component.func line=9,241,821 per_sec=22,142
+    2017-11-20T15:33.16 DEBUG component.func line=9,241,821 per_sec=22,142
 
 I wanted to get the average of these per_second values, and so I wrote a little
 filter to extract the number:
 
     head log -1 | perl -nE'/per_sec=(\S+)/ and say $1'
-     22142
+     22,142
 
 However that gave me output like "22,124", which wasn't yet ready for
-averaging. So I spend a minute or two fiddling with the filter and ended up with
+averaging. So I spent a minute or two fiddling with the filter and ended up with
 the follwing:
 
     cat log | perl -nE'/per_sec=(\S+)/ and do { ( $a =$1 ) =~ s/,//g; say $a}'
 
 Not too bad, and with a bit more golfing I could have gotten it down to
-something shorter. However, splitting it up would have made it even easier:
+something shorter. However, splitting this procedure up into two separate
+transformations would have made it much easier:
 
     head -1 log | perl -nE'/per_sec=(\S+)/ and say $1' | tr -d ','
      22142
@@ -461,12 +532,12 @@ it would have been simpler to refine it in two minimal filters that I could
 write correctly the first time (or with 5 seconds looking at the tr manpage
 after `tr ',' ""` didn't work.
 
-
 To conclude this recipe, to compute the average, I just piped the resulting
 values into the `stats` script, referenced below. Again, I could have written
 some more perl to aggregate values and then print the results at eof or in an
-end block, but I'd have spent a bit more time fiddling (or googling), and I
-really just had a simple 60 second question to see if the average.
+END block, but I'd have spent a bit more time fiddling (or googling), and I
+really just had a simple 60 second question to see if the average was above
+or below the last few values I saw in the logfile.
 
 ### collapse or replace spaces and newlines
 
@@ -508,12 +579,23 @@ tr is a simple solution here, as long as you only want one to one replacement:
      2
      3
 
-As described  in the perl section above, you can use perl to replace spaces with newlines:
+Collapse multiple spaces with the squeeze (-s) option:
+
+    echo "1   2 3" | tr -s " " '\n'
+     1
+     2
+     3
+
+As described in the perl section above, you can use perl to replace spaces with newlines:
 
     echo "1   2 3" | perl -pe's/ +/\n/g' 
      1
      2
      3
+
+Or via autosplit + join:
+
+    echo "1   2 3" | perl -anE'say join "\n", @F'
  
 ### remove newlines with perl
 
@@ -541,6 +623,15 @@ A little tool I discovered recently is `rs` :
      5   6   7   8
      9   10  11  12
 
+or to transpose row and column order with `-t`:
+
+    seq 11 | rs -t 3 4
+     1   4   7   10
+     2   5   8   11
+     3   6   9
+
+Or to collapse. Use 0 to automatically determine the other value:
+
     seq 6 | rs 1 0
      1  2  3  4  5  6
 
@@ -549,14 +640,19 @@ And just to show it is smart about collapsing arrays:
     seq 6 | rs 2 3 | rs 1 0
      1  2  3  4  5  6
 
-I'm just playing with this a bit, there are a lot more options, and it doesn't
-appear to be widely available.
+    seq 6 | rs 2 3 | rs 0 5
+     1  2  3  4  5
+     6  
+
+I'm just playing with `rs` a bit, there are a lot more options, and it doesn't
+appear to be widely available. However, it's nice if you want to specify the
+columns and rows.
 
 ### merge sort  multiple files of sorted data
 
 Sometimes I have data that has already been sorted by another process. GNU sort
 is very powerful and has a variety of features like parallel sorting and large
-file sorting (more on sort below). It also provides merge-sorting of pre-sorted
+file sorting (more on sort below). It also provides merge sorting of pre-sorted
 files via the `--merge` switch.
 
     sort --merge sorted1 sorted2 sorted3
@@ -623,8 +719,10 @@ to the screen.
     12:37
 
 `join` requires that the both input files are pre-sorted by the join key, and so
-we will have to re-sort the errors table before joining. I'll use sort and sort
-"inplace", overwriting the original file: However, a temp file would work just
+we will have to re-sort the errors table before joining. I'll sort inplace, by
+telling sort to output to a file (the input file) when complete. Note that unlike
+a normal output redirect, sort is smart enough to only create/rename the output
+file when the sort operation is complete. However, a temp file would work just
 as well. I'm sorting on field #2, and sort uses whitespace as column delimiters
 by default. We'll skip the items table, since it's already sorted.
 
@@ -635,7 +733,7 @@ on from each file. Since we want the first (and only) field from minutes, we can
 omit it. `-a 2` tells join to show missing matches from the minutes file, 
 and `-1 2` tells join to use the join key from file 1, field 2.
 
-    join  -a 2 -1 2 00 errors minutes
+    join  -a 2 -1 2 errors minutes
      12:31 12
      12:32 19
      12:33
@@ -672,9 +770,9 @@ Here's a simple script to join files with headers:
 
 Tail is typically used to display the last n lines of a file, e.g. get the bottom top values with `sort data | tail -5`
 
-However, it can also skip lines if you provide a positive offset, e.g. `tail +10`
-The catch is that the number you provide is where it will start printing, not how many
-lines will be skipped.
+However, it can also skip lines if you provide a positive offset, e.g. 
+`tail +10` or `tail -n +10` The catch is that the number you provide is where 
+it will start printing, *one less* than the number of lines will be skipped.
 
     # starts on line 3
     seq 5 | tail +3 
@@ -685,7 +783,8 @@ lines will be skipped.
 Note: If you actually want the top 5 values from a dataset, it's more common to
 reverse the sort and take the first values, e.g. `sort -nr data | head -5`
 which should be just as fast to sort, and avoids reading through the entire
-file just to get the last few values.
+file just to get the last few values, which is what tail must do when reading
+from a pipe.
 
 ### Sort a file with a header
 
@@ -719,6 +818,10 @@ as well.
      # Here's some data
 
 Instead, if we put the header on stderr, and then sort the rest, we'll get what we want
+printed to the terminal. 
+
+**NOTE** This will NOT put the header into the output pipeline. See the bottom of this
+recipe for an alternative.
 
     head -2 data > /dev/stderr; tail +3 data  | sort -nr
      # Here's some data
@@ -744,7 +847,6 @@ of a file:
       }
     }
 
-
     behead -2 data | sort -nr
      # Here's some data
      # with a header
@@ -763,10 +865,16 @@ command, but can be useful just to see in the terminal.
      01
      10
 
+If you want to capture both the header and the sorted body, use the command-block/subshell technique:
+
+    ( head -2 data; tail +3 data | sort -nr ) > data.sorted
+
+
 ### put data into a specific number of columns with pr
 
 The pr command is used to format text files for printing, and it has a large
 set of options. It can also be used to do some useful things for display.
+Unlike `rs`, it is standard on nearly every linux system.
 
 Note that the -t option is required to skip the unwanted page header that is
 intended for print output.
