@@ -113,7 +113,7 @@ This document describes a variety of linux tools (standard and/or open source)
 that I have found useful for various parts of the process. They are also tools
 and techniques that I find myself re-discovering periodically, so this document
 is both a reminder to myself about things that have worked for me, and
-potentially teaching tool for others. Note that there are multiple approaches
+potentially a teaching tool for others. Note that there are multiple approaches
 to almost every recipe I've listed here.
 
 Conventions: In code blocks, the command is left justified, while output from
@@ -1051,7 +1051,8 @@ See below for the section on xargs.
 
 ### Find lines that are in one file, but not in another
 
-Sometimes I have a list of all files, and then a list of files that I want to keep, and I need to subtract the keepers aand work on the rest.
+Sometimes I have a list of all files, and then a list of files that I want to
+keep, and I need to subtract the keepers aand work on the rest.
 
 If both files are sorted (or can be sorted), then you can use either the `comm` utility, or `diff`.
 
