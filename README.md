@@ -89,14 +89,16 @@ Rebuild with :
 
 ## Overview
 
-I often find myelf processing text files on the linux command line: things like, logfiles, data
-files, command output, etc... 
+In my daily work, I often have a need to quickly analyze textual data from
+logfiles, APIs and console commands. I need to answer questions like how many
+events occurred, how frequently they occurred, and/or how they relate to other
+events over a period of time.
 
 Many of my data processing tasks follow this pattern:
 
 * FILTER the input, selecting a set of lines that I want
 * EXTRACT/TRANSFORM the selected lines into a more useful format
-* AGGREGATE the data
+* AGGREGATE the data to summarize
 
 Due to the power and flexibility of linux pipes, I can quickly assemble a set
 of commands that are very effective on small to medium sized datasets (able to
