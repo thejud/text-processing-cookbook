@@ -107,12 +107,12 @@ exploratory analysis, and answer many types of questions quickly.
 
 I try to remember a set of techniques that I can put together on the fly to
 answer questions in under 60 seconds, often much less. More complicated
-questions can be answered in an actual program, or with higher-level tools.
+questions can be answered via an actual program, or with higher-level tools.
 
 This document describes a variety of linux tools (standard and/or open source)
 that I have found useful for various parts of the process. They are also tools
 and techniques that I find myself re-discovering periodically, so this document
-is both a reminder to myself about things that have worked for me, and a
+is both a reminder to myself about things that have worked for me, and
 potentially teaching tool for others. Note that there are multiple approaches
 to almost every recipe I've listed here.
 
@@ -154,10 +154,11 @@ search, avoiding .git files, and a few other nice features.
 
 ### searching via perl
 
-perl also has built in regular expressions, and a few other things that make it worthwhile. It is installed
-on most systems by default. Whatever tool you end up uses, it's useful to learn enough of the feature
-set that you at least know what is possible, and when a task is likely to be accomplished quickly (e.g. the top
-result on stack overflow)
+perl also has built in regular expressions, and a few other things that make it
+worthwhile. It is installed on most systems by default. Whatever tool you end
+up using, it's useful to learn enough of the feature set that you at least know
+what is possible, and when a task is likely to be accomplished quickly (e.g.
+the top result on stack overflow)
 
 See [General transformation with perl \-pE and \-nE](#general-transformation-with-perl--pe-and--ne)
 for using perl as a general purpose filter.
@@ -194,12 +195,14 @@ Similarly, it can be done in awk:
 
     seq 10 | awk 'NR=1; END {print}'
 
-Awk loops through the input, and prints the line if the expression evaluates as true. Like perl, it also provides
-and BEGIN and END block for special operations. However, in awk, unlink perl, the last line can be printed
-in the end block.
+awk loops through the input, and prints the line if the expression evaluates as
+true. Like perl, it also provides BEGIN and END block for special operations
+before or after looping through the file. However, in awk, unlink perl, the
+last line can be printed in the end block.
 
-Note that all of these methods require reading the entire input, e.g. in a pipe. If you simply want the first line of a file,
-using head and tail can be MUCH faster.
+Note that all of these methods require reading the entire input, e.g. in a
+pipe. If you simply want the first+last line of a file, using head and tail can be
+MUCH faster.
 
     head -1 myfile
     tail -1 myfile
@@ -224,21 +227,32 @@ Perl has an interesting operator called the range or flip-flop operator that can
      f
      g
 
-Now, select everything between the line starting with c, and the line starting with e:
+Now, let's select everything between the line starting with c, and the line starting with e:
 
     perl -nE'print if /^c/../^e/' letters
      c
      d
      e
 
-If integers are provided for one or both conditions, it is matched against the line number (AKA $.)
+Here we're using perl's bare `print` call to print the entire line based on a
+conditional expression. Once whatever is on the left side of the `..` is
+matched, the entire expression becomes true (and the line is printed). The
+expression becomes false AFTER the right side is matched. Often, regexes are
+used on each side, e.g. `print if /^START/../^END/` to print all lines between
+START and END. There are a few tips and tricks, described in very gory detail
+in the perl docs: https://perldoc.perl.org/perlop.html#Range-Operators
 
-    perl -nE'print if /^c/..5' letters
+If integers are provided for one or both conditions, it is matched against the
+ordinal line number (AKA $.)
+
+    perl -nE'print if 3..5' letters
      c
      d
      e
 
-    perl -nE'print if 3..5' letters
+And, combining both a line number and a pattern, we get:
+
+    perl -nE'print if /^c/..5' letters
      c
      d
      e
@@ -249,12 +263,48 @@ And finally, you can continue to the end of the file by using eof (note that it 
      e
      f
      g
-     
-once whatever is on the left side of the `..` is matched, the entire expression
-becomes true. It becomes false after the right side is matched. Often, regexes
-are used on each side, e.g. `print if /^START/../^END/` to print all lines
-between START and END. There are a few tips and tricks, described in very gory
-detail in the perl docs: https://perldoc.perl.org/perlop.html#Range-Operators
+
+Note that the flip flop operator can turn on and off repeatedly, which you can
+use to extract blocks of text separated by a delimiter, or other things:
+
+Here's an example of some data that is delimited by 'START' and 'END'
+
+    cat > delims.txt <<EOF
+    START
+    1
+    2
+    END
+    4
+    5
+    6
+    START
+    7
+    END
+    8
+    9
+    START
+    10
+    11
+    12
+    END
+    13
+    14
+    15
+    EOF
+
+    cat delims.txt | perl -nE'print if /START/../END/'
+     START
+     1
+     2
+     END
+     START
+     7
+     END
+     START
+     10
+     11
+     12
+     END
  
 ## EXTRACTION
 
@@ -270,7 +320,7 @@ variable whitespace, like formatted text or the output of a command like `ls -l`
 
     ls -l | tail +2 | awk '{print $5}'
 
-To print multiple columns, remember to join with ',', not ' ':
+To print multiple columns, remember to join with `,`, not ` `:
 
     ls -l | tail +2 | awk '{print $2,$1}'
 
@@ -295,8 +345,10 @@ Print the 2nd from the last column:
 
 cut is designed to extract fields from a line, given a single character
 delimiter or position list. It will not split on patterns or multi-chararacter
-delimiters. Use `awk` or one of the tools described below if you have more complicated
-data.
+delimiters. Use `awk` or one of the tools described below if you have more
+complicated data. By default, it splits fields on a single tab character, but
+you can easily specify something else with the `-d' option.
+
 
     cat > data <<EOF	
     foo:bar:baz
@@ -456,7 +508,7 @@ step in analyzing errors per minute.
 
 I tend to prefer to only take the parts I want, rather than replacing the
 entire line. perl's `-n` flag loops over all the input, but doesn't print
-anything. The -E flag is an updated of the -e flag, and just makes some
+anything. The -E flag is an updated version of the -e flag that just makes some
 of the more modern perl features available. I use `-E` mostly so that I can use
 `say $var` instead of `print "$var\n"`, because say is shorter and automically
 adds a trailing newline.
@@ -472,14 +524,15 @@ Like any other part of your pipeline, it's fine to clean up your
 output progressively with multiple smaller, simpler filters. I often do this
 because it's easier to apply fixes than to get one large regex just right.
 Naturally, if you're building a high-volume or production pipeline, it's
-probably worthwhile to take the time to get it right. 
+probably worthwhile to take the time to get it right in fewer steps. 
 
 Here's the filter from the previous recipe broken down into several steps.
 
 Note that in this example I'm using `tee /dev/stderr` to give some diagnostic
 output at each stage in the pipeline so you can see how the line is
 progressively refined. You would only want to do that for debugging or
-development. 
+development. The output appears at the end, and I've added some blank lines `\`
+just to visually separate the steps.
 
     printf "2017-11-01T12:14:22.12352 ERROR critical" \
     | cut -d ' ' -f 1,2 \
@@ -498,14 +551,15 @@ development.
      12:14 ERROR
 
 Another advantage of several simple filters is that you don't have to spend
-time looking up the particular syntax.
+time looking up the particular syntax for a more complicated regular expression.
 
 Recently, I've been dealing with billions of records in blocks of 10 million or
 so. In the logfiles for these tools, I use numbers with comma separation so
-it's a little easier to quickly see the exact magnitude of the numbers.
+it's a little easier to quickly see the exact magnitude of the numbers. However,
+the comma format isn't as easy for doing math.
 
 Here's a partial log line. I typically use key=value format in my log as well,
-as they are both clear and easy to parse.
+as it is both clear and easy to parse.
 
     2017-11-20T15:33.16 DEBUG component.func line=9,241,821 per_sec=22,142
 
@@ -546,7 +600,7 @@ or below the last few values I saw in the logfile.
 perl has a few character classes in regular expressions that are worthwhile:
 
 * \s is for general whitespace (spaces, newlines and tabs)
-* \h is for horizontal whitespace (spaces and tabs)
+* \h is for horizontal whitespace (spaces and tabs, NOT newlines)
 * \v is for vertical whitespace (newlines)
 * \t is for tabs
 
@@ -770,7 +824,7 @@ Here's a simple script to join files with headers:
 
 ### Remove the first n lines of a file with tail
 
-Tail is typically used to display the last n lines of a file, e.g. get the bottom top values with `sort data | tail -5`
+Tail is typically used to display the last n lines of a file, e.g. get the final (largest) 5 values with `sort data | tail -5`
 
 However, it can also skip lines if you provide a positive offset, e.g. 
 `tail +10` or `tail -n +10` The catch is that the number you provide is where 
@@ -793,7 +847,7 @@ from a pipe.
 Sometimes you have a file that has a multiline header, and you'd like to sort
 the data but keep the header. One nice technique is to print the header to
 stderr, and then process the rest of the file before displaying it. This is
-also a nice way to provide "users" with a variety of options to sort the
+also a nice way to provide users with a variety of options to sort the
 output, assuming it is in easily sortable form. 
 
 It's pretty easy to do this with head and tail, although you have to remember
