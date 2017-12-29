@@ -730,13 +730,13 @@ paste a b c
 
 Note that you can also use paste to transform a single stream into multiple
 columns by including the desired number of stdin reads, `paste - -` or
-paste `- - - - -`:
+`paste - - - - -`:
 
-seq 10 | paste - - -
- 1	2	3
- 4	5	6
- 7	8	9
- 10		
+    seq 10 | paste - - -
+     1	2	3
+     4	5	6
+     7	8	9
+     10		
 
 ### join: intersect two files
 
