@@ -17,6 +17,7 @@ Table of Contents
   * [EXTRACTION](#extraction)
     * [Extracting one or more columns with awk](#extracting-one-or-more-columns-with-awk)
     * [Field extraction via perl \-anE](#field-extraction-via-perl--ane)
+      * [Printing the last column, awk and perl](#printing-the-last-column-awk-and-perl)
     * [Extract simple fields via cut](#extract-simple-fields-via-cut)
     * [Extract by character position with cut](#extract-by-character-position-with-cut)
     * [Extract fixed\-width fields with awk](#extract-fixed-width-fields-with-awk)
@@ -324,22 +325,30 @@ To print multiple columns, remember to join with `,`, not ` `:
 
     ls -l | tail +2 | awk '{print $2,$1}'
 
-Sometimes you just want to print the last column, when you don't know (or don't
-want to count) how many columns there are. Use the number of fields `$NF`
-variable:
-
-    ls -l | tail +2 | awk '{print $NF}'
-
 ### Field extraction via perl -anE 
 
 Perl also has an autosplit mode, -a, which can break up each input line by
-whitespace and put it into an array @F. Index the array to pick out columns.
+whitespace and put it into an array @F. Index the array to pick out columns. Note that the fields are zero-indexed.
+
+    ls -l | perl -anE'say $F[1]'  # the second field
+
+
+#### Printing the last column, awk and perl
+
+Sometimes you just want to print the last column, when you don't know (or don't
+want to count) how many columns there are. This is also useful if you have a variable number of columns.
+
+In awk, use the number of fields `$NF` variable:
+
+    ls -l | tail +2 | awk '{print $NF}'
+
 Because perl allows negative array indexing to pick elements, I often use this
-to select the last, or n from the last, fields.
+to select the last field (or N from the last field), combining it with the autosplit function.
 
 Print the 2nd from the last column:
 
     ls -l | perl -anE'say $F[-2]'
+
 
 ### Extract simple fields via cut
 
@@ -456,6 +465,14 @@ delimited file. If you find yourself going often to awk for something like `awk
     printf "the quick brown fox\nand so it goes" | f 3
      brown
      it
+
+Note that supports negative indexes, and can also be used to print the last column.
+
+    seq 10 | paste - - - | f -1  # grab the last column on each line
+      3
+      6
+      9
+      10   
 
 ### scut - swiss army knife of column cutters
 
