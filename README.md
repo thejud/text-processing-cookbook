@@ -1757,8 +1757,6 @@ ls -t -1 *.csv | xargs -P 4 -t -n 1 gzip
  gzip 01.csv
 ```
 
-Which leads into the next section, for a higher-powered alternative.
-
 ### GNU parallel
 
 Parallel is a powerful and huge tool, and has many pages of manuals and examples.
@@ -1767,6 +1765,18 @@ However, there are a few key things that I like about running commands via paral
 
 * easily create separate log files for each invocation.
 * run commands on multiple machines
+
+Here are a few simple examples:
+
+gzip all csv files in a directory. Create one job per core, and provide some diagnostic output.
+
+    ls *.csv | parallel --eta gzip
+
+More complicated, use the command substitution to create a basename, and remove
+the extension with an extended command. {} is the input, {.} is the input
+without the extension, and {/.} is the basename without the extension.
+
+    ls *.gz | parallel --eta 'mkdir {/.} && cd {/.} && unzip ../{}'
 
 See also: [sem](https://www.gnu.org/software/parallel/sem.html), part of the
 gnu parallel package, which allows you to easily limit the number of concurrent
