@@ -6,84 +6,85 @@ command line by Jud Dagnall <https://github.com/thejud/text-processing-cookbook>
 Table of Contents
 =================
 
-* [text\-processing\-cookbook](#text-processing-cookbook)
-  * [Overview](#overview)
-  * [FILTER AND SELECT](#filter-and-select)
-    * [ag \- the silver searcher](#ag---the-silver-searcher)
-    * [searching via perl](#searching-via-perl)
-      * [select first and last lines](#select-first-and-last-lines)
-      * [range selection with perl's flip\-flop (\.\.) operator](#range-selection-with-perls-flip-flop--operator)
-  * [EXTRACTION](#extraction)
-    * [Extracting one or more columns with awk](#extracting-one-or-more-columns-with-awk)
-    * [Field extraction via perl \-anE](#field-extraction-via-perl--ane)
-      * [Printing the last column, awk and perl](#printing-the-last-column-awk-and-perl)
-    * [Extract simple fields via cut](#extract-simple-fields-via-cut)
-    * [Extract by character position with cut](#extract-by-character-position-with-cut)
-    * [Extract fixed\-width fields with awk](#extract-fixed-width-fields-with-awk)
-    * [Extract fixed\-width fields with in2csv](#extract-fixed-width-fields-with-in2csv)
-    * [Convert whitespace\-delimited columns to csv](#convert-whitespace-delimited-columns-to-csv)
-    * [cutting columns, other tools](#cutting-columns-other-tools)
-    * [f \- trivial field extractor](#f---trivial-field-extractor)
-    * [scut \- swiss army knife of column cutters](#scut---swiss-army-knife-of-column-cutters)
-    * [to extract columns from CSV data, use csvcut](#to-extract-columns-from-csv-data-use-csvcut)
-  * [TRANSFORMATION](#transformation)
-    * [General transformation with perl \-pE and \-nE](#general-transformation-with-perl--pe-and--ne)
-    * [Create several simple filters rather than one complicated one](#create-several-simple-filters-rather-than-one-complicated-one)
-    * [collapse or replace spaces and newlines](#collapse-or-replace-spaces-and-newlines)
-    * [convert spaces to newline with tr or perl](#convert-spaces-to-newline-with-tr-or-perl)
-    * [remove newlines with perl](#remove-newlines-with-perl)
-    * [reshape text with rs](#reshape-text-with-rs)
-    * [merge sort  multiple files of sorted data](#merge-sort--multiple-files-of-sorted-data)
-    * [paste: add files side by side](#paste-add-files-side-by-side)
-    * [join: intersect two files](#join-intersect-two-files)
-    * [Concatenate files, skipping header line](#concatenate-files-skipping-header-line)
-    * [Remove the first n lines of a file with tail](#remove-the-first-n-lines-of-a-file-with-tail)
-    * [Sort a file with a header](#sort-a-file-with-a-header)
-    * [put data into a specific number of columns with pr](#put-data-into-a-specific-number-of-columns-with-pr)
-    * [making data tables with column](#making-data-tables-with-column)
-    * [Use column to create a flexible number of columns to fill the width\.](#use-column-to-create-a-flexible-number-of-columns-to-fill-the-width)
-    * [joining all lines with xargs or paste](#joining-all-lines-with-xargs-or-paste)
-    * [joining/transforming all except the last line with perl](#joiningtransforming-all-except-the-last-line-with-perl)
-    * [transforming only one (or more) columns](#transforming-only-one-or-more-columns)
-  * [Grouping data](#grouping-data)
-    * [Find distinct items, removing duplicates](#find-distinct-items-removing-duplicates)
-    * [Find unique items](#find-unique-items)
-    * [Find duplicate items](#find-duplicate-items)
-    * [Find lines that are in one file, but not in another](#find-lines-that-are-in-one-file-but-not-in-another)
-    * [Split data into files based on a field](#split-data-into-files-based-on-a-field)
-  * [Frequency counts and distributions](#frequency-counts-and-distributions)
-    * [get a frequency count of items, or find common items](#get-a-frequency-count-of-items-or-find-common-items)
-    * [Find the n most common items](#find-the-n-most-common-items)
-    * [Better frequency counts](#better-frequency-counts)
-    * [Histogram of values](#histogram-of-values)
-  * [SPECIALIZED TOOLS FOR AGGREGATION, SUMMARY, ANALYSIS AND REPORTING](#specialized-tools-for-aggregation-summary-analysis-and-reporting)
-    * [stats](#stats)
-    * [csvstat](#csvstat)
-    * [datamash](#datamash)
-      * [quick grouped stats with datamash](#quick-grouped-stats-with-datamash)
-      * [Cross tables/pivot tables with datamash](#cross-tablespivot-tables-with-datamash)
-  * [csv/tsv:](#csvtsv)
-    * [csvkit](#csvkit)
-  * [json](#json)
-    * [jq](#jq)
-  * [Generating data](#generating-data)
-    * [Generating columns of data by column](#generating-columns-of-data-by-column)
-    * [Generating columns of data by row](#generating-columns-of-data-by-row)
-    * [Generating a sequence of letters:](#generating-a-sequence-of-letters)
-    * [Generating random numbers](#generating-random-numbers)
-      * [jot](#jot)
-    * [Generating permutations with shuf](#generating-permutations-with-shuf)
-  * [Sorting](#sorting)
-    * [gnusort on osx via coreutils](#gnusort-on-osx-via-coreutils)
-      * [sort items lexicographically, numerically (gnu sort)](#sort-items-lexicographically-numerically-gnu-sort)
-      * [sort with size units, (k, m, etc)](#sort-with-size-units-k-m-etc)
-  * [Batch and parallel execution with xargs and parallel](#batch-and-parallel-execution-with-xargs-and-parallel)
-    * [xargs](#xargs)
-    * [GNU parallel](#gnu-parallel)
-  * [Misc](#misc)
-    * [Progress bars in pipes](#progress-bars-in-pipes)
+* [text-processing-cookbook](#text-processing-cookbook)
+   * [Overview](#overview)
+   * [FILTER AND SELECT](#filter-and-select)
+      * [ag - the silver searcher](#ag---the-silver-searcher)
+      * [searching via perl](#searching-via-perl)
+         * [select first and last lines](#select-first-and-last-lines)
+         * [range selection with perl's flip-flop (..) operator](#range-selection-with-perls-flip-flop--operator)
+   * [EXTRACTION](#extraction)
+      * [Extracting one or more columns with awk](#extracting-one-or-more-columns-with-awk)
+      * [Field extraction via perl -anE](#field-extraction-via-perl--ane)
+         * [Printing the last column, awk and perl](#printing-the-last-column-awk-and-perl)
+      * [Extract simple fields via cut](#extract-simple-fields-via-cut)
+      * [Extract by character position with cut](#extract-by-character-position-with-cut)
+      * [Extract fixed-width fields with awk](#extract-fixed-width-fields-with-awk)
+      * [Extract fixed-width fields with in2csv](#extract-fixed-width-fields-with-in2csv)
+      * [Convert whitespace-delimited columns to csv](#convert-whitespace-delimited-columns-to-csv)
+      * [cutting columns, other tools](#cutting-columns-other-tools)
+      * [f - trivial field extractor](#f---trivial-field-extractor)
+      * [scut - swiss army knife of column cutters](#scut---swiss-army-knife-of-column-cutters)
+      * [to extract columns from CSV data, use csvcut](#to-extract-columns-from-csv-data-use-csvcut)
+   * [TRANSFORMATION](#transformation)
+      * [General transformation with perl -pE and -nE](#general-transformation-with-perl--pe-and--ne)
+      * [Create several simple filters rather than one complicated one](#create-several-simple-filters-rather-than-one-complicated-one)
+      * [collapse or replace spaces and newlines](#collapse-or-replace-spaces-and-newlines)
+      * [convert spaces to newline with tr or perl](#convert-spaces-to-newline-with-tr-or-perl)
+      * [remove newlines with perl](#remove-newlines-with-perl)
+      * [reshape text with rs](#reshape-text-with-rs)
+      * [merge sort  multiple files of sorted data](#merge-sort--multiple-files-of-sorted-data)
+      * [paste: add files side by side](#paste-add-files-side-by-side)
+      * [join: intersect two files](#join-intersect-two-files)
+      * [Concatenate files, skipping header line](#concatenate-files-skipping-header-line)
+      * [Remove the first n lines of a file with tail](#remove-the-first-n-lines-of-a-file-with-tail)
+      * [Sort a file with a header](#sort-a-file-with-a-header)
+      * [put data into a specific number of columns with pr](#put-data-into-a-specific-number-of-columns-with-pr)
+      * [making data tables with column](#making-data-tables-with-column)
+      * [Use column to create a flexible number of columns to fill the width.](#use-column-to-create-a-flexible-number-of-columns-to-fill-the-width)
+      * [joining all lines with xargs or paste](#joining-all-lines-with-xargs-or-paste)
+      * [joining/transforming all except the last line with perl](#joiningtransforming-all-except-the-last-line-with-perl)
+      * [Transform one column at a time](#transform-one-column-at-a-time)
+         * [Split, transform and recombine columns](#split-transform-and-recombine-columns)
+   * [Grouping data](#grouping-data)
+      * [Find distinct items, removing duplicates](#find-distinct-items-removing-duplicates)
+      * [Find unique items](#find-unique-items)
+      * [Find duplicate items](#find-duplicate-items)
+      * [Find lines that are in one file, but not in another](#find-lines-that-are-in-one-file-but-not-in-another)
+      * [Split data into files based on a field](#split-data-into-files-based-on-a-field)
+   * [Frequency counts and distributions](#frequency-counts-and-distributions)
+      * [get a frequency count of items, or find common items](#get-a-frequency-count-of-items-or-find-common-items)
+      * [Find the n most common items](#find-the-n-most-common-items)
+      * [Better frequency counts](#better-frequency-counts)
+      * [Histogram of values](#histogram-of-values)
+   * [SPECIALIZED TOOLS FOR AGGREGATION, SUMMARY, ANALYSIS AND REPORTING](#specialized-tools-for-aggregation-summary-analysis-and-reporting)
+      * [stats](#stats)
+      * [csvstat](#csvstat)
+      * [datamash](#datamash)
+         * [quick grouped stats with datamash](#quick-grouped-stats-with-datamash)
+         * [Cross tables/pivot tables with datamash](#cross-tablespivot-tables-with-datamash)
+   * [csv/tsv:](#csvtsv)
+      * [csvkit](#csvkit)
+   * [json](#json)
+      * [jq](#jq)
+   * [Generating data](#generating-data)
+      * [Generating columns of data by column](#generating-columns-of-data-by-column)
+      * [Generating columns of data by row](#generating-columns-of-data-by-row)
+      * [Generating a sequence of letters:](#generating-a-sequence-of-letters)
+      * [Generating random numbers](#generating-random-numbers)
+         * [jot](#jot)
+      * [Generating permutations with shuf](#generating-permutations-with-shuf)
+   * [Sorting](#sorting)
+      * [gnusort on osx via coreutils](#gnusort-on-osx-via-coreutils)
+         * [sort items lexicographically, numerically (gnu sort)](#sort-items-lexicographically-numerically-gnu-sort)
+         * [sort with size units, (k, m, etc)](#sort-with-size-units-k-m-etc)
+   * [Batch and parallel execution with xargs and parallel](#batch-and-parallel-execution-with-xargs-and-parallel)
+      * [xargs](#xargs)
+      * [GNU parallel](#gnu-parallel)
+   * [Misc](#misc)
+      * [Progress bars in pipes](#progress-bars-in-pipes)
 
-Created by [gh-md-toc](https://github.com/ekalinin/github-markdown-toc.go)
+Created by [gh-md-toc](https://github.com/ekalinin/github-markdown-toc)
 
 Rebuild with :
 
@@ -675,13 +676,13 @@ Or via autosplit + join:
 
 Replace newlines, or vertical whitespace (a bit more cross-platform):
 
-seq 10 | perl -pe's/\v/ /g' 
- 1 2 3 4 5 6 7 8 9 10 
+    seq 10 | perl -pe's/\v/ /g' 
+     1 2 3 4 5 6 7 8 9 10 
 
 Keep the final newline:
 
-seq 10 | perl -pe's/\v/ / unless eof'
-1 2 3 4 5 6 7 8 9 10
+    seq 10 | perl -pe's/\v/ / unless eof'
+     1 2 3 4 5 6 7 8 9 10
 
 
 ### reshape text with rs
@@ -1067,13 +1068,13 @@ Use a perl transformation like `perl -pe's/\n/:/ unless eof'` to join with other
 The more generalized technique can be used to apply any transformation to all except the last line.
 
 
-### transforming only one (or more) columns
+### Transform one column at a time
 
-Sometime I want to transform only a single column of data at a time. A very
+Sometimes I want to work on only one column of a multi-column file. A very
 common case is transforming the timestamp of some data, or a time-based ID to a
 timestamp. Other possible cases include doing some lookup, hashing, and data obfuscation.
 
-If the transformation is quite simple, using perl or awk can be used:
+If the transformation is quite simple, perl or awk can be used:
 
     cat <<EOF | tee data
       1  2018-04-01  foo
@@ -1098,6 +1099,8 @@ A relatively complicated way to to the same thing with perl's autosplit.
      9 2018-04-01 BAR
      10 2018-04-02 BAZ
      11 2018-04-03 CAT
+
+#### Split, transform and recombine columns
 
 However, sometimes the transformation is more complicated than I'd want to try
 inline, or I have an existing tool or filter that will work on a column of
