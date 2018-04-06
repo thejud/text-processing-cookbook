@@ -1226,7 +1226,8 @@ If both files are sorted (or can be sorted), then you can use either the `comm` 
 
 comm takes two **sorted** files, and reports lines that are in a, b or both.
 
-So, to show items that are in `all`, but not in `reject`, tell comm to suppress the lines in the second file (reject, `-2`), and in both files (`-3`):
+So, to show items that are in `all`, but not in `reject`, tell `comm` to suppress
+the lines in the second file (reject, `-2`), and in both files (`-3`):
 
     comm -2 -3 all reject
 
