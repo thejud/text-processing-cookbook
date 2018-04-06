@@ -494,7 +494,7 @@ and you can specify fields by name or by index.
 ## TRANSFORMATION
 
 perl is my tool of choice for many line-oriented transformations. It's worth
-learning a few tricks, and invensting some time one or more of perl, sed or awk.
+learning a few tricks, and investing some time with one or more of perl, sed or awk.
 
 ### General transformation with perl -pE and -nE
 
