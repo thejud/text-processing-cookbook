@@ -820,6 +820,8 @@ and `-1 2` tells join to use the join key from file 1, field 2.
 With an additional filter, we could add a default value of zero, but it is
 now clear in context which values are missing.
 
+See also: `comm`
+
 ### Concatenate files, skipping header line
 
 Often I want to combine multiple files that already have headers, most commonly
@@ -1216,16 +1218,20 @@ by 10).
 
 ### Find lines that are in one file, but not in another
 
-Sometimes I have a list of all files, and then a list of files that I want to
-keep, and I need to subtract the keepers aand work on the rest.
+Sometimes I have a list of all items, and then a list of items that I want to
+remove, and so I need to exclude (subtract) the rejects and work on the
+rest.
 
 If both files are sorted (or can be sorted), then you can use either the `comm` utility, or `diff`.
 
-comm takes two files, and reports of files that are in a, b or both.
+comm takes two **sorted** files, and reports lines that are in a, b or both.
 
-So, to file files that are in `all`, but not in 'keep', tell comm to suppress the lines in the second file (-2), and in both files (-3):
+So, to show items that are in `all`, but not in `reject`, tell comm to suppress the lines in the second file (reject, `-2`), and in both files (`-3`):
 
-    comm -23 all keep
+    comm -2 -3 all reject
+
+
+See also: `join`, which gives more control on a column by column basis.
 
 You can also grep the output of diff, which is most useful if you want to get a
 bit of context around missing lines. Lines removed from the first file are
@@ -1238,6 +1244,7 @@ an easier choice.
 If it's not practical to sort the files, then you may need to do a little
 actual coding to put the lines from one file into a dictionary or set, and
 remove the lines from the other.
+
 
 
 ### Split data into files based on a field
