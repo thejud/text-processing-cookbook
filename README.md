@@ -1111,9 +1111,9 @@ relatively small. Here I'm doing it with the same 3-column file.
 
 Create one file per colum:
 
-    awk '{print $1}' > a.01
-    awk '{print $2}' > a.02
-    awk '{print $3}' > a.03
+    awk '{print $1}' data > a.01
+    awk '{print $2}' data > a.02
+    awk '{print $3}' data > a.03
 
 Transform a column. Here we use a tempfile and would overwrite the original
 file only if the command succeeds:
@@ -1123,12 +1123,20 @@ file only if the command succeeds:
 
 Verify that the files still have the same number of lines:
 
-    wc -l a.0* b.02
+    wc -l a.0*
+       4 a.01
+       4 a.02
+       4 a.03
+      12 total
 
 Recombine the columns using paste. Separate with a space to match the input
 file format.
 
     paste -d " " a.01 a.02 a.03
+     1 2018-04-01 foo
+     2 2018-04-01 br
+     3 2018-04-02 bz
+     4 2018-04-03 ct
 
 Note that there are some problems with this approach. The most significant is
 that your transformation script must return a single line of output for every
@@ -1138,18 +1146,9 @@ columns, or a small file. Naturally, column extraction could be scripted with a
 for loop, or a dedicated, smarter tool, but then things begin to get
 complicated. 
 
+Loop to extract columns 1,2 and 3:
+
     for i in `seq 3`; do awk "{print \$$i}" data > a.$i ; done
-    tr -d 'a' < a.3  > tmp && mv tmp a.3  # Remove 'a'. inline tempfile
-    wc -l a.*
-    paste a.*
-            4 a.1
-            4 a.2
-            4 a.3
-           12 total
-     1       2018-04-01      foo
-     2       2018-04-01      br
-     3       2018-04-02      bz
-     4       2018-04-03      ct
 
 Finally, awk and paste are best for simple, whitespace delimited files, but you
 could use something like `csvcut` (from `csvkit`, described below) and `paste
@@ -1159,10 +1158,11 @@ Update:
 
 Here's a cool solution for many columns via stack overflow
 (https://stackoverflow.com/a/41863438). It makes use of the GNU split command
-to put every Nth line into its own file. WARNING: The built-in split on OSX
-DOESN'T have the required functionality, so you'll need to install the GNU
-version. e.g. `brew install coreutils`. Under that same stack overflow question
-is a pure-awk solution, but it's also a bit complicated.
+to group every Nth line together into a separate file without multiple passes through the
+input. WARNING: The built-in split on OSX **DOESN'T** have the required
+functionality, so you'll need to install the GNU version. e.g. `brew install
+coreutils`. Under that same stack overflow question is a pure-awk solution, but
+it's also a bit complicated.
 
 Create a sample file with 10 columns:
 
@@ -1173,9 +1173,10 @@ Create a sample file with 10 columns:
      31 32 33 34 35 36 37 38 39 40
      41 42 43 44 45 46 47 48 49 50
      
-Create one file per column by first collapsing the columns into one cell per
-line. Split every 10th line (each column) into a separate files, transform the
-9th column, and paste the files back together:
+Create one file per column by first collapsing the input rows into one cell per
+line. These lines are split into 10 files, with every line going round-robin into
+a separate (per-column) file.
+Then transform the 9th column, and paste the files back together:
 
     cat data | tr ' ' '\n' | gsplit -nr/10 -d - /tmp/transform.
     perl -ni -E'say $_*10'  /tmp/transform.08
