@@ -7,7 +7,6 @@ Table of Contents
 =================
 
 * [text\-processing\-cookbook](#text-processing-cookbook)
-* [Table of Contents](#table-of-contents)
   * [Overview](#overview)
   * [FILTER AND SELECT](#filter-and-select)
     * [ag \- the silver searcher](#ag---the-silver-searcher)
@@ -43,7 +42,9 @@ Table of Contents
     * [put data into a specific number of columns with pr](#put-data-into-a-specific-number-of-columns-with-pr)
     * [making data tables with column](#making-data-tables-with-column)
     * [Use column to create a flexible number of columns to fill the width\.](#use-column-to-create-a-flexible-number-of-columns-to-fill-the-width)
-    * [joining all lines with xargs](#joining-all-lines-with-xargs)
+    * [joining all lines with xargs or paste](#joining-all-lines-with-xargs-or-paste)
+    * [joining/transforming all except the last line with perl](#joiningtransforming-all-except-the-last-line-with-perl)
+    * [transforming only one (or more) columns](#transforming-only-one-or-more-columns)
   * [Grouping data](#grouping-data)
     * [Find distinct items, removing duplicates](#find-distinct-items-removing-duplicates)
     * [Find unique items](#find-unique-items)
@@ -1028,15 +1029,13 @@ seq 30 | column -c 40 -x
 26      27      28      29      30
 ```
 
-### joining all lines with xargs
+### joining all lines with xargs or paste
 
 If you just want all the items on the same line, `xargs` is quick and dirty,
 joining with spaces. `xargs echo` can also be used.
 
     seq 20 | xargs
      1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20
-
-Use a perl transformation like `perl -pe's/\n/:/ unless eof'` to join with other characters.
 
 To have a specific number of columns, still space separated, have xargs break
 it up for you. here's we're chosing 5 at a time, and notice that the alignment
@@ -1049,6 +1048,151 @@ isn't very good. See `column` below for how to align columns.
      16 17 18 19 20
 
 See below for the section on xargs. 
+
+paste also provides a way to join all lines, the `-s` option. By default, paste
+joins using a tab, but you can change that with the `-d`  option.
+
+    seq 5 | paste -s -
+     1       2       3       4       5
+
+And to create comma-separated lists, provide a delimiter with the `-d` flag:
+
+    seq 5 | paste -s -d, -
+     1,2,3,4,5
+
+### joining/transforming all except the last line with perl
+
+Use a perl transformation like `perl -pe's/\n/:/ unless eof'` to join with other characters.
+
+The more generalized technique can be used to apply any transformation to all except the last line.
+
+
+### transforming only one (or more) columns
+
+Sometime I want to transform only a single column of data at a time. A very
+common case is transforming the timestamp of some data, or a time-based ID to a
+timestamp. Other possible cases include doing some lookup, hashing, and data obfuscation.
+
+If the transformation is quite simple, using perl or awk can be used:
+
+    cat <<EOF | tee data
+      1  2018-04-01  foo
+      2  2018-04-01  bar
+      3  2018-04-02  baz
+      4  2018-04-03  cat
+    EOF
+
+Here's an example of using two simple awk filters to increment column 1, and
+uppercase column 3:
+
+    cat data | awk '$1=$1+7' | awk '$3=toupper($3)'
+     8 2018-04-01 FOO
+     9 2018-04-01 BAR
+     10 2018-04-02 BAZ
+     11 2018-04-03 CAT
+
+A relatively complicated way to to the same thing with perl's autosplit.
+
+    perl -anE'$F[0]+= 7; $F[-1] = uc($F[-1]); say join " ", @F' data
+     8 2018-04-01 FOO
+     9 2018-04-01 BAR
+     10 2018-04-02 BAZ
+     11 2018-04-03 CAT
+
+However, sometimes the transformation is more complicated than I'd want to try
+inline, or I have an existing tool or filter that will work on a column of
+data. One technique is to split the input into separate files by column,
+process each column separately, and then recombine the column files with the
+`paste` command. Note that this most useful when the number of columns is
+relatively small. Here I'm doing it with the same 3-column file.
+
+Create one file per colum:
+
+    awk '{print $1}' > a.01
+    awk '{print $2}' > a.02
+    awk '{print $3}' > a.03
+
+Transform a column. Here we use a tempfile and would overwrite the original
+file only if the command succeeds:
+
+    cat a.02 | tr -d 'a' > tmp
+    mv tmp a.02
+
+Verify that the files still have the same number of lines:
+
+    wc -l a.0* b.02
+
+Recombine the columns using paste. Separate with a space to match the input
+file format.
+
+    paste -d " " a.01 a.02 a.03
+
+Note that there are some problems with this approach. The most significant is
+that your transformation script must return a single line of output for every
+line of input, or the columns will become misaligned. Also, you end up
+re-reading the input file several times, which may be ok with a small number of
+columns, or a small file. Naturally, column extraction could be scripted with a
+for loop, or a dedicated, smarter tool, but then things begin to get
+complicated. 
+
+    for i in `seq 3`; do awk "{print \$$i}" data > a.$i ; done
+    tr -d 'a' < a.3  > tmp && mv tmp a.3  # Remove 'a'. inline tempfile
+    wc -l a.*
+    paste a.*
+            4 a.1
+            4 a.2
+            4 a.3
+           12 total
+     1       2018-04-01      foo
+     2       2018-04-01      br
+     3       2018-04-02      bz
+     4       2018-04-03      ct
+
+Finally, awk and paste are best for simple, whitespace delimited files, but you
+could use something like `csvcut` (from `csvkit`, described below) and `paste
+-d,` to handle CSV files.
+
+Update:
+
+Here's a cool solution for many columns via stack overflow
+(https://stackoverflow.com/a/41863438). It makes use of the GNU split command
+to put every Nth line into its own file. WARNING: The built-in split on OSX
+DOESN'T have the required functionality, so you'll need to install the GNU
+version. e.g. `brew install coreutils`. Under that same stack overflow question
+is a pure-awk solution, but it's also a bit complicated.
+
+Create a sample file with 10 columns:
+
+    seq 50 | xargs -n10 | tee data
+     1 2 3 4 5 6 7 8 9 10
+     11 12 13 14 15 16 17 18 19 20
+     21 22 23 24 25 26 27 28 29 30
+     31 32 33 34 35 36 37 38 39 40
+     41 42 43 44 45 46 47 48 49 50
+     
+Create one file per column by first collapsing the columns into one cell per
+line. Split every 10th line (each column) into a separate files, transform the
+9th column, and paste the files back together:
+
+    cat data | tr ' ' '\n' | gsplit -nr/10 -d - /tmp/transform.
+    perl -ni -E'say $_*10'  /tmp/transform.08
+    paste -d ' ' /tmp/transform.*
+     1 2 3 4 5 6 7 8 90 10
+     11 12 13 14 15 16 17 18 190 20
+     21 22 23 24 25 26 27 28 290 30
+     31 32 33 34 35 36 37 38 390 40
+     41 42 43 44 45 46 47 48 490 50
+
+The `gsplit` (or `split` on linux) command magic is as follows:
+
+* extract every 10th line into its own file, round robin style `-nr/10`
+* create numeric filename suffixes `-d` (default to 2 digits. Starts with 00) 
+* read from STDIN `-`
+* write ouput files with a prefix `/tmp/transform.`
+
+Note that the split files start at 00, so we transformed the 9th column in
+`/tmp/tranform.08`. We did another trivial transformation (multiply the value
+by 10).
 
 ## Grouping data
 
@@ -1119,7 +1263,7 @@ Verify the files:
      2017-11-22  2017-11-23  2017-11-24  2017-11-25  2017-11-26  2017-11-27
 
 Finally, compute an average based on a special purpose program (or your own
-oneliner)
+one-liner)
 
     10:51:39 $ for f in 2017*;do  echo -n "$f "; average $f; done;
      2017-11-22 28623.5339943343
@@ -1371,21 +1515,22 @@ amount column for each cell.
      2016    N/A 33  75
      2017    300 N/A N/A
 
-
-
-
 ## csv/tsv:
 
 ### csvkit
 
-csvkit is an excellent set of tools (and python libraries) for working with CSV data. I work with a variety of csv data,
-and I use many of these frequently.
+[csvkit](https://csvkit.readthedocs.io/) is an excellent set of tools (and
+python libraries) for working with CSV data. I encounter (and generate) a
+variety of csv data, and I use many of these frequently. Note that the suite
+also works with tab-separated values (TSV). 
 
 I tend to use:
 
 * csvlook - pretty printing of csv files
 * csvcut - extract columns from CSV
+* csvformat - convert CSV <=> TSV
 * csvsql - run SQL queries against CSV data
+* csvgrep - search by column in CSV data
 * csvstats - summary statistics for CSV file
 
 
