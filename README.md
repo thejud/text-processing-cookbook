@@ -28,7 +28,7 @@ Table of Contents
     * [to extract columns from CSV data, use csvcut](#to-extract-columns-from-csv-data-use-csvcut)
   * [TRANSFORMATION](#transformation)
     * [General transformation with perl \-pE and \-nE](#general-transformation-with-perl--pe-and--ne)
-    * [Create several simple filters rather than one complicated ones](#create-several-simple-filters-rather-than-one-complicated-ones)
+    * [Create several simple filters rather than one complicated one](#create-several-simple-filters-rather-than-one-complicated-one)
     * [collapse or replace spaces and newlines](#collapse-or-replace-spaces-and-newlines)
     * [convert spaces to newline with tr or perl](#convert-spaces-to-newline-with-tr-or-perl)
     * [remove newlines with perl](#remove-newlines-with-perl)
@@ -536,7 +536,7 @@ adds a trailing newline.
     | perl -nE'/T(\d\d:\d\d):\S+ (ERROR|FATAL)/ and say "$1 $2"'
      12:14 ERROR
 
-### Create several simple filters rather than one complicated ones
+### Create several simple filters rather than one complicated one
 
 Like any other part of your pipeline, it's fine to clean up your
 output progressively with multiple smaller, simpler filters. I often do this
