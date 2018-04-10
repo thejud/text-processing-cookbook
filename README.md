@@ -85,8 +85,6 @@ Table of Contents
       * [Misc](#misc)
          * [Progress bars in pipes](#progress-bars-in-pipes)
 
-<!-- Added by: jdagnall, at: 2018-04-10T12:01-07:00 -->
-
 <!--te-->
 
 Rebuild with :
@@ -504,7 +502,7 @@ and you can specify fields by name or by index.
 ## TRANSFORMATION
 
 perl is my tool of choice for many line-oriented transformations. It's worth
-learning a few tricks, and invensting some time one or more of perl, sed or awk.
+learning a few tricks, and investing some time with one or more of perl, sed or awk.
 
 ### General transformation with perl -pE and -nE
 
@@ -546,7 +544,7 @@ adds a trailing newline.
     | perl -nE'/T(\d\d:\d\d):\S+ (ERROR|FATAL)/ and say "$1 $2"'
      12:14 ERROR
 
-### Create several simple filters rather than one complicated ones
+### Create several simple filters rather than one complicated one
 
 Like any other part of your pipeline, it's fine to clean up your
 output progressively with multiple smaller, simpler filters. I often do this
@@ -685,13 +683,13 @@ Or via autosplit + join:
 
 Replace newlines, or vertical whitespace (a bit more cross-platform):
 
-seq 10 | perl -pe's/\v/ /g' 
- 1 2 3 4 5 6 7 8 9 10 
+    seq 10 | perl -pe's/\v/ /g' 
+     1 2 3 4 5 6 7 8 9 10 
 
 Keep the final newline:
 
-seq 10 | perl -pe's/\v/ / unless eof'
-1 2 3 4 5 6 7 8 9 10
+    seq 10 | perl -pe's/\v/ / unless eof'
+     1 2 3 4 5 6 7 8 9 10
 
 
 ### reshape text with rs
@@ -828,6 +826,8 @@ and `-1 2` tells join to use the join key from file 1, field 2.
 
 With an additional filter, we could add a default value of zero, but it is
 now clear in context which values are missing.
+
+See also: `comm`
 
 ### Concatenate files, skipping header line
 
@@ -1077,13 +1077,13 @@ Use a perl transformation like `perl -pe's/\n/:/ unless eof'` to join with other
 The more generalized technique can be used to apply any transformation to all except the last line.
 
 
-### transforming only one (or more) columns
+### Transform one column at a time
 
-Sometime I want to transform only a single column of data at a time. A very
+Sometimes I want to work on only one column of a multi-column file. A very
 common case is transforming the timestamp of some data, or a time-based ID to a
 timestamp. Other possible cases include doing some lookup, hashing, and data obfuscation.
 
-If the transformation is quite simple, using perl or awk can be used:
+If the transformation is quite simple, perl or awk can be used:
 
     cat <<EOF | tee data
       1  2018-04-01  foo
@@ -1109,6 +1109,8 @@ A relatively complicated way to to the same thing with perl's autosplit.
      10 2018-04-02 BAZ
      11 2018-04-03 CAT
 
+#### Split, transform and recombine columns
+
 However, sometimes the transformation is more complicated than I'd want to try
 inline, or I have an existing tool or filter that will work on a column of
 data. One technique is to split the input into separate files by column,
@@ -1118,9 +1120,9 @@ relatively small. Here I'm doing it with the same 3-column file.
 
 Create one file per colum:
 
-    awk '{print $1}' > a.01
-    awk '{print $2}' > a.02
-    awk '{print $3}' > a.03
+    awk '{print $1}' data > a.01
+    awk '{print $2}' data > a.02
+    awk '{print $3}' data > a.03
 
 Transform a column. Here we use a tempfile and would overwrite the original
 file only if the command succeeds:
@@ -1130,12 +1132,20 @@ file only if the command succeeds:
 
 Verify that the files still have the same number of lines:
 
-    wc -l a.0* b.02
+    wc -l a.0*
+       4 a.01
+       4 a.02
+       4 a.03
+      12 total
 
 Recombine the columns using paste. Separate with a space to match the input
 file format.
 
     paste -d " " a.01 a.02 a.03
+     1 2018-04-01 foo
+     2 2018-04-01 br
+     3 2018-04-02 bz
+     4 2018-04-03 ct
 
 Note that there are some problems with this approach. The most significant is
 that your transformation script must return a single line of output for every
@@ -1145,18 +1155,9 @@ columns, or a small file. Naturally, column extraction could be scripted with a
 for loop, or a dedicated, smarter tool, but then things begin to get
 complicated. 
 
+Loop to extract columns 1,2 and 3:
+
     for i in `seq 3`; do awk "{print \$$i}" data > a.$i ; done
-    tr -d 'a' < a.3  > tmp && mv tmp a.3  # Remove 'a'. inline tempfile
-    wc -l a.*
-    paste a.*
-            4 a.1
-            4 a.2
-            4 a.3
-           12 total
-     1       2018-04-01      foo
-     2       2018-04-01      br
-     3       2018-04-02      bz
-     4       2018-04-03      ct
 
 Finally, awk and paste are best for simple, whitespace delimited files, but you
 could use something like `csvcut` (from `csvkit`, described below) and `paste
@@ -1166,10 +1167,11 @@ Update:
 
 Here's a cool solution for many columns via stack overflow
 (https://stackoverflow.com/a/41863438). It makes use of the GNU split command
-to put every Nth line into its own file. WARNING: The built-in split on OSX
-DOESN'T have the required functionality, so you'll need to install the GNU
-version. e.g. `brew install coreutils`. Under that same stack overflow question
-is a pure-awk solution, but it's also a bit complicated.
+to group every Nth line together into a separate file without multiple passes through the
+input. WARNING: The built-in split on OSX **DOESN'T** have the required
+functionality, so you'll need to install the GNU version. e.g. `brew install
+coreutils`. Under that same stack overflow question is a pure-awk solution, but
+it's also a bit complicated.
 
 Create a sample file with 10 columns:
 
@@ -1180,9 +1182,10 @@ Create a sample file with 10 columns:
      31 32 33 34 35 36 37 38 39 40
      41 42 43 44 45 46 47 48 49 50
      
-Create one file per column by first collapsing the columns into one cell per
-line. Split every 10th line (each column) into a separate files, transform the
-9th column, and paste the files back together:
+Create one file per column by first collapsing the input rows into one cell per
+line. These lines are split into 10 files, with every line going round-robin into
+a separate (per-column) file.
+Then transform the 9th column, and paste the files back together:
 
     cat data | tr ' ' '\n' | gsplit -nr/10 -d - /tmp/transform.
     perl -ni -E'say $_*10'  /tmp/transform.08
@@ -1222,16 +1225,20 @@ by 10).
 
 ### Find lines that are in one file, but not in another
 
-Sometimes I have a list of all files, and then a list of files that I want to
-keep, and I need to subtract the keepers aand work on the rest.
+Sometimes I have a list of all items, and then a list of items that I want to
+remove, and so I need to exclude (subtract) the rejects and work on the
+rest.
 
 If both files are sorted (or can be sorted), then you can use either the `comm` utility, or `diff`.
 
-comm takes two files, and reports of files that are in a, b or both.
+comm takes two **sorted** files, and reports lines that are in a, b or both.
 
-So, to file files that are in `all`, but not in 'keep', tell comm to suppress the lines in the second file (-2), and in both files (-3):
+So, to show items that are in `all`, but not in `reject`, tell comm to suppress the lines in the second file (reject, `-2`), and in both files (`-3`):
 
-    comm -23 all keep
+    comm -2 -3 all reject
+
+
+See also: `join`, which gives more control on a column by column basis.
 
 You can also grep the output of diff, which is most useful if you want to get a
 bit of context around missing lines. Lines removed from the first file are
@@ -1244,6 +1251,7 @@ an easier choice.
 If it's not practical to sort the files, then you may need to do a little
 actual coding to put the lines from one file into a dictionary or set, and
 remove the lines from the other.
+
 
 
 ### Split data into files based on a field
@@ -1767,8 +1775,6 @@ ls -t -1 *.csv | xargs -P 4 -t -n 1 gzip
  gzip 01.csv
 ```
 
-Which leads into the next section, for a higher-powered alternative.
-
 ### GNU parallel
 
 Parallel is a powerful and huge tool, and has many pages of manuals and examples.
@@ -1777,6 +1783,18 @@ However, there are a few key things that I like about running commands via paral
 
 * easily create separate log files for each invocation.
 * run commands on multiple machines
+
+Here are a few simple examples:
+
+gzip all csv files in a directory. Create one job per core, and provide some diagnostic output.
+
+    ls *.csv | parallel --eta gzip
+
+More complicated, use the command substitution to create a basename, and remove
+the extension with an extended command. {} is the input, {.} is the input
+without the extension, and {/.} is the basename without the extension.
+
+    ls *.gz | parallel --eta 'mkdir {/.} && cd {/.} && unzip ../{}'
 
 See also: [sem](https://www.gnu.org/software/parallel/sem.html), part of the
 gnu parallel package, which allows you to easily limit the number of concurrent
