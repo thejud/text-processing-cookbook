@@ -1693,9 +1693,11 @@ In this example, I want to take 100 random selections 'foo', 'bar' or 'baz'
      baz
 
 Here's a more complicated example of generating some test scores for some
-random student ids in random classes (note that here I'm using gshuf. On osx, when installing gnu coreutils
-via brew, it uses the 'g' prefix for the gnu tools so they don't conflict with the osx standard (BSD) utilities
-of the same name):
+random student ids in random classes (note that here I'm using gshuf. On Mac
+OSX, when installing coreutils via brew, it uses the 'g' prefix for the gnu
+tools so they don't conflict with the osx standard (BSD) utilities of the same
+name). Here I'm also using (...) to combine the output of multiple commands,
+and converting spaces to tabs during output so I have an actual TSV file:
 
 
     seq 100 | gshuf -n 100 -r > student_ids.txt
@@ -1719,6 +1721,7 @@ Now, with these scores, let's get some aggregate data
 ### gnusort on osx via coreutils
 
 On osx, you will probably want gnusort, which can be installed via `brew install coreutils`
+and will then appear as gsort.
 
 #### sort items lexicographically, numerically (gnu sort)
 
