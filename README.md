@@ -127,8 +127,9 @@ prefix from commands when copying and pasting from a page.
 I also use the `cat foo | bar` form in many places rather than `bar < foo`
 because I've fat-fingered '>' instead of '<' one too many times, overwriting my
 source file. Additionally, I also use most of these scripts as part of a larger
-pipeline, so there's often another step. Here's an example of how a command and
-its output will be formatted.
+pipeline, so there's often another few steps to generate the input instead of a
+simple `cat` command. Here's an example of how a command and its output will be
+formatted.
 
     seq 10 | head -3
      1
@@ -1307,7 +1308,7 @@ See http://www.theunixschool.com/2012/06/awk-10-examples-to-split-file-into.html
 
 ### Find the n most common items
 
-    # find tps 7 most common items
+    # find top 7 most common items
     cat data | sort | uniq -c | sort -nr  | head -7
 
 ### Better frequency counts
