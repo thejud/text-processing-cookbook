@@ -137,7 +137,7 @@ formatted.
      3
 
 Finally, unless otherwise noted, the commands should handle more than one line
-of input even I only provide one line of input, e.g. 
+of input even if I only provide one line of input, e.g. 
 `echo foo,bar,baz | csvlook -H`.
 
 ## Other resource
