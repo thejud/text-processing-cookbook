@@ -1281,6 +1281,10 @@ Verify the files:
 
     10:51:30 $ ls
      2017-11-22  2017-11-23  2017-11-24  2017-11-25  2017-11-26  2017-11-27
+     
+To add a suffix or prefix, use this awk syntax:
+
+    10:51:12 $ awk '{ print $2>$1".txt"}' /tmp/a
 
 Finally, compute an average based on a special purpose program (or your own
 one-liner)
