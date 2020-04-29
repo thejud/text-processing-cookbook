@@ -1073,9 +1073,14 @@ And to create comma-separated lists, provide a delimiter with the `-d` flag:
 
 ### joining/transforming all except the last line with perl
 
+Here's another way to join a set of lines, but keep the last one intact. Useful if you want to create a comma-separated.
+
 Use a perl transformation like `perl -pe's/\n/:/ unless eof'` to join with other characters.
 
-The more generalized technique can be used to apply any transformation to all except the last line.
+   seq 5 | perl -pe's/\n/:/ unless eof'
+    1:2:3:4:5
+
+This recipe can be generalized to apply any transformation to all except the last line.
 
 
 ### Transform one column at a time
@@ -1087,10 +1092,10 @@ timestamp. Other possible cases include doing some lookup, hashing, and data obf
 If the transformation is quite simple, perl or awk can be used:
 
     cat <<EOF | tee data
-      1  2018-04-01  foo
-      2  2018-04-01  bar
-      3  2018-04-02  baz
-      4  2018-04-03  cat
+    1  2018-04-01  foo
+    2  2018-04-01  bar
+    3  2018-04-02  baz
+    4  2018-04-03  cat
     EOF
 
 Here's an example of using two simple awk filters to increment column 1, and
@@ -1102,9 +1107,9 @@ uppercase column 3:
      10 2018-04-02 BAZ
      11 2018-04-03 CAT
 
-A relatively complicated way to to the same thing with perl's autosplit.
+A relatively complicated way to do the same thing with perl's autosplit:
 
-    perl -anE'$F[0]+= 7; $F[-1] = uc($F[-1]); say join " ", @F' data
+    perl -anE'$F[0]+= 7; $F[-1] = uc($F[-1]); say join(" ", @F)' data
      8 2018-04-01 FOO
      9 2018-04-01 BAR
      10 2018-04-02 BAZ
