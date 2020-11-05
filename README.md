@@ -9,7 +9,7 @@ Table of Contents
 <!--ts-->
    * [text-processing-cookbook](#text-processing-cookbook)
       * [Overview](#overview)
-      * [Other resource](#other-resource)
+      * [Other Resourcs](#other-resources)
       * [FILTER AND SELECT](#filter-and-select)
          * [ag - the silver searcher](#ag---the-silver-searcher)
          * [searching via perl](#searching-via-perl)
@@ -140,11 +140,15 @@ Finally, unless otherwise noted, the commands should handle more than one line
 of input even if I only provide one line of input, e.g. 
 `echo foo,bar,baz | csvlook -H`.
 
-## Other resource
+## Other Resources
 
 There's a great list of text processing utilities here:
 
   * https://github.com/dbohdan/structured-text-tools
+
+Jeroen Janssens wrote a good book about this topic
+
+  * https://www.datascienceatthecommandline.com/
 
 ## FILTER AND SELECT
 
@@ -701,6 +705,7 @@ A little tool I discovered recently is `rs` :
 - https://github.com/chneukirchen/rs
 - appears built-in on mac
 
+
     seq 12 | rs 3 4
      1   2   3   4
      5   6   7   8
@@ -784,7 +789,7 @@ count pipeline, described below.
     12	12:34
     19	12:32
     23	12:36
-    99	12.37
+    99	12:37
     EOM
 
 And we'll generate all the minutes in our range. See the generation section or
@@ -1050,7 +1055,7 @@ joining with spaces. `xargs echo` can also be used.
 
 To have a specific number of columns, still space separated, have xargs break
 it up for you. here's we're chosing 5 at a time, and notice that the alignment
-isn't very good. See `column` below for how to align columns.
+isn't very good. See `column` above for how to align columns.
 
     seq 20 | xargs -n5 echo
      1 2 3 4 5
@@ -1575,7 +1580,7 @@ https://source.opennews.org/articles/eleven-awesome-things-you-can-do-csvkit/
 
 ### jq
 
-Here's some sample json (created using the jo json authoring tool)
+Here's some sample json (created using the [jo json authoring tool](https://github.com/jpmens/jo) )
 
     { jo user[name]=jud user[id]=17 ; jo user[name]=joe user[id]=22;} | tee json1
     {"user":{"name":"jud","id":17}}
