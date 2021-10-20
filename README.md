@@ -161,7 +161,7 @@ and regular expressions going forward.
 ### ag - the silver searcher
 
 [ag - AKA the silver searcher](https://github.com/ggreer/the_silver_searcher) is
-a fast, flexible grep alternative to grep forcused on powerful searches with
+a fast, flexible alternative to grep forcused on powerful searches with
 perl-compatible regular expressions and common default options like recursive
 search, avoiding .git files, and a few other nice features.
 
@@ -169,7 +169,7 @@ search, avoiding .git files, and a few other nice features.
 
 ### searching via perl
 
-perl also has built in regular expressions, and a few other things that make it
+perl also has built-in regular expressions, and a few other things that make it
 worthwhile. It is installed on most systems by default. Whatever tool you end
 up using, it's useful to learn enough of the feature set that you at least know
 what is possible, and when a task is likely to be accomplished quickly (e.g.
@@ -179,8 +179,8 @@ See [General transformation with perl \-pE and \-nE](#general-transformation-wit
 for using perl as a general purpose filter.
 
 grep (or ag) is great when you want to select lines based on a pattern.
-Sometimes it's useful to select ranges of lines based on their position or by a
-delimiter.
+However, sometimes it is useful to select ranges of lines based on their position or by a
+delimiter instead.
 
 #### select first and last lines
 
@@ -197,7 +197,7 @@ modern perl features like `say`.
 
 The print function will print the current line by default.
 
-`eof` is the end of the file, and is relatively self explanatory. What is interesting is that you can print
+`eof` is the end of the file, and is relatively self-explanatory. What is interesting is that you can print
 the last line once eof is detected.
 
 Found an altenative recently that uses the perl flip-flop operator, described below: https://unix.stackexchange.com/a/139199
@@ -212,7 +212,7 @@ Similarly, it can be done in awk:
 
 awk loops through the input, and prints the line if the expression evaluates as
 true. Like perl, it also provides BEGIN and END block for special operations
-before or after looping through the file. However, in awk, unlink perl, the
+before or after looping through the file. However, in awk, unlike perl, the
 last line can be printed in the end block.
 
 Note that all of these methods require reading the entire input, e.g. in a
