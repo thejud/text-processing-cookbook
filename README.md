@@ -1291,10 +1291,10 @@ Verify the files:
 
     10:51:30 $ ls
      2017-11-22  2017-11-23  2017-11-24  2017-11-25  2017-11-26  2017-11-27
-     
+
 To add a suffix or prefix, use this awk syntax:
 
-    10:51:12 $ awk '{ print $2>$1".txt"}' /tmp/a
+    10:51:12 $ awk '{ print $2>($1 ".txt" )}' /tmp/a
 
 Finally, compute an average based on a special purpose program (or your own
 one-liner)
@@ -1821,6 +1821,18 @@ See also: [sem](https://www.gnu.org/software/parallel/sem.html), part of the
 gnu parallel package, which allows you to easily limit the number of concurrent
 proceses without the complexity of parallel. Very useful for running N jobs in
 parallel inside a simple for loop.
+
+## Visualization
+
+There are a few tools that are useful for quick and dirty visualization.
+
+### Sparklines
+
+[sparklines](https://github.com/deeplook/sparklines) is a small tool (and python module) for quick numeric visualization:
+
+    seq 10 | gshuf | sparklines
+   ▂▅▄▃▆▁▇█▃▆
+
 
 ## Misc
 
