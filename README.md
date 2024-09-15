@@ -1,4 +1,4 @@
-# text-processing-cookbook
+# The Text Processing Cookbook by Jud Dagnall
 
 A cookbook of tools and techniques for processing text and data at the linux
 command line by Jud Dagnall <https://github.com/thejud/text-processing-cookbook>
@@ -7,83 +7,91 @@ Table of Contents
 =================
 
 <!--ts-->
-   * [text-processing-cookbook](#text-processing-cookbook)
-      * [Overview](#overview)
-      * [Other Resourcs](#other-resources)
-      * [FILTER AND SELECT](#filter-and-select)
-         * [ag - the silver searcher](#ag---the-silver-searcher)
-         * [searching via perl](#searching-via-perl)
-            * [select first and last lines](#select-first-and-last-lines)
-            * [range selection with perl's flip-flop (..) operator](#range-selection-with-perls-flip-flop--operator)
-      * [EXTRACTION](#extraction)
-         * [Extracting one or more columns with awk](#extracting-one-or-more-columns-with-awk)
-         * [Field extraction via perl -anE](#field-extraction-via-perl--ane)
-            * [Printing the last column, awk and perl](#printing-the-last-column-awk-and-perl)
-         * [Extract simple fields via cut](#extract-simple-fields-via-cut)
-         * [Extract by character position with cut](#extract-by-character-position-with-cut)
-         * [Extract fixed-width fields with awk](#extract-fixed-width-fields-with-awk)
-         * [Extract fixed-width fields with in2csv](#extract-fixed-width-fields-with-in2csv)
-         * [Convert whitespace-delimited columns to csv](#convert-whitespace-delimited-columns-to-csv)
-         * [cutting columns, other tools](#cutting-columns-other-tools)
-         * [f - trivial field extractor](#f---trivial-field-extractor)
-         * [scut - swiss army knife of column cutters](#scut---swiss-army-knife-of-column-cutters)
-         * [to extract columns from CSV data, use csvcut](#to-extract-columns-from-csv-data-use-csvcut)
-      * [TRANSFORMATION](#transformation)
-         * [General transformation with perl -pE and -nE](#general-transformation-with-perl--pe-and--ne)
-         * [Create several simple filters rather than one complicated ones](#create-several-simple-filters-rather-than-one-complicated-ones)
-         * [collapse or replace spaces and newlines](#collapse-or-replace-spaces-and-newlines)
-         * [convert spaces to newline with tr or perl](#convert-spaces-to-newline-with-tr-or-perl)
-         * [remove newlines with perl](#remove-newlines-with-perl)
-         * [reshape text with rs](#reshape-text-with-rs)
-         * [merge sort  multiple files of sorted data](#merge-sort--multiple-files-of-sorted-data)
-         * [paste: add files side by side](#paste-add-files-side-by-side)
-         * [join: intersect two files](#join-intersect-two-files)
-         * [Concatenate files, skipping header line](#concatenate-files-skipping-header-line)
-         * [Remove the first n lines of a file with tail](#remove-the-first-n-lines-of-a-file-with-tail)
-         * [Sort a file with a header](#sort-a-file-with-a-header)
-         * [put data into a specific number of columns with pr](#put-data-into-a-specific-number-of-columns-with-pr)
-         * [making data tables with column](#making-data-tables-with-column)
-         * [Use column to create a flexible number of columns to fill the width.](#use-column-to-create-a-flexible-number-of-columns-to-fill-the-width)
-         * [joining all lines with xargs or paste](#joining-all-lines-with-xargs-or-paste)
-         * [joining/transforming all except the last line with perl](#joiningtransforming-all-except-the-last-line-with-perl)
-         * [transforming only one (or more) columns](#transforming-only-one-or-more-columns)
-      * [Grouping data](#grouping-data)
-         * [Find distinct items, removing duplicates](#find-distinct-items-removing-duplicates)
-         * [Find unique items](#find-unique-items)
-         * [Find duplicate items](#find-duplicate-items)
-         * [Find lines that are in one file, but not in another](#find-lines-that-are-in-one-file-but-not-in-another)
-         * [Split data into files based on a field](#split-data-into-files-based-on-a-field)
-      * [Frequency counts and distributions](#frequency-counts-and-distributions)
-         * [get a frequency count of items, or find common items](#get-a-frequency-count-of-items-or-find-common-items)
-         * [Find the n most common items](#find-the-n-most-common-items)
-         * [Better frequency counts](#better-frequency-counts)
-         * [Histogram of values](#histogram-of-values)
-      * [SPECIALIZED TOOLS FOR AGGREGATION, SUMMARY, ANALYSIS AND REPORTING](#specialized-tools-for-aggregation-summary-analysis-and-reporting)
-         * [stats](#stats)
-         * [csvstat](#csvstat)
-         * [datamash](#datamash)
-            * [quick grouped stats with datamash](#quick-grouped-stats-with-datamash)
-            * [Cross tables/pivot tables with datamash](#cross-tablespivot-tables-with-datamash)
-      * [csv/tsv:](#csvtsv)
-         * [csvkit](#csvkit)
-      * [json](#json)
-         * [jq](#jq)
-      * [Generating data](#generating-data)
-         * [Generating columns of data by column](#generating-columns-of-data-by-column)
-         * [Generating columns of data by row](#generating-columns-of-data-by-row)
-         * [Generating a sequence of letters:](#generating-a-sequence-of-letters)
-         * [Generating random numbers](#generating-random-numbers)
-            * [jot](#jot)
-         * [Generating permutations with shuf](#generating-permutations-with-shuf)
-      * [Sorting](#sorting)
-         * [gnusort on osx via coreutils](#gnusort-on-osx-via-coreutils)
-            * [sort items lexicographically, numerically (gnu sort)](#sort-items-lexicographically-numerically-gnu-sort)
-            * [sort with size units, (k, m, etc)](#sort-with-size-units-k-m-etc)
-      * [Batch and parallel execution with xargs and parallel](#batch-and-parallel-execution-with-xargs-and-parallel)
-         * [xargs](#xargs)
-         * [GNU parallel](#gnu-parallel)
-      * [Misc](#misc)
-         * [Progress bars in pipes](#progress-bars-in-pipes)
+* [The Text Processing Cookbook by Jud Dagnall](#the-text-processing-cookbook-by-jud-dagnall)
+* [Table of Contents](#table-of-contents)
+   * [Overview](#overview)
+   * [Other Resources](#other-resources)
+   * [FILTER AND SELECT](#filter-and-select)
+      * [ag - the silver searcher](#ag---the-silver-searcher)
+      * [searching via perl](#searching-via-perl)
+         * [select first and last lines](#select-first-and-last-lines)
+         * [range selection with perl's flip-flop (..) operator](#range-selection-with-perls-flip-flop--operator)
+         * [Going deeper - Extracting nested fields with the perl flip-flop operator](#going-deeper---extracting-nested-fields-with-the-perl-flip-flop-operator)
+   * [EXTRACTION](#extraction)
+      * [Extracting one or more columns with awk](#extracting-one-or-more-columns-with-awk)
+      * [Field extraction via perl -anE](#field-extraction-via-perl--ane)
+         * [Printing the last column, awk and perl](#printing-the-last-column-awk-and-perl)
+      * [Extract simple fields via cut](#extract-simple-fields-via-cut)
+      * [Extract by character position with cut](#extract-by-character-position-with-cut)
+      * [Extract fixed-width fields with awk](#extract-fixed-width-fields-with-awk)
+      * [Extract fixed-width fields with in2csv](#extract-fixed-width-fields-with-in2csv)
+      * [Convert whitespace-delimited columns to csv](#convert-whitespace-delimited-columns-to-csv)
+      * [cutting columns, other tools](#cutting-columns-other-tools)
+      * [f - trivial field extractor](#f---trivial-field-extractor)
+      * [scut - swiss army knife of column cutters](#scut---swiss-army-knife-of-column-cutters)
+      * [to extract columns from CSV data, use csvcut](#to-extract-columns-from-csv-data-use-csvcut)
+   * [TRANSFORMATION](#transformation)
+      * [General transformation with perl -pE and -nE](#general-transformation-with-perl--pe-and--ne)
+      * [Create several simple filters rather than one complicated one](#create-several-simple-filters-rather-than-one-complicated-one)
+      * [collapse or replace spaces and newlines](#collapse-or-replace-spaces-and-newlines)
+      * [convert spaces to newline with tr or perl](#convert-spaces-to-newline-with-tr-or-perl)
+      * [remove newlines with perl](#remove-newlines-with-perl)
+      * [reshape text with rs](#reshape-text-with-rs)
+      * [merge sort  multiple files of sorted data](#merge-sort--multiple-files-of-sorted-data)
+      * [paste: add files side by side](#paste-add-files-side-by-side)
+      * [join: intersect two files](#join-intersect-two-files)
+      * [Concatenate files, skipping header line](#concatenate-files-skipping-header-line)
+      * [Remove the first n lines of a file with tail](#remove-the-first-n-lines-of-a-file-with-tail)
+      * [Sort a file with a header](#sort-a-file-with-a-header)
+      * [put data into a specific number of columns with pr](#put-data-into-a-specific-number-of-columns-with-pr)
+      * [making data tables with column](#making-data-tables-with-column)
+      * [Use column to create a flexible number of columns to fill the width.](#use-column-to-create-a-flexible-number-of-columns-to-fill-the-width)
+      * [joining all lines with xargs or paste](#joining-all-lines-with-xargs-or-paste)
+      * [joining/transforming all except the last line with perl](#joiningtransforming-all-except-the-last-line-with-perl)
+      * [Transform one column at a time](#transform-one-column-at-a-time)
+         * [Split, transform and recombine columns](#split-transform-and-recombine-columns)
+   * [Grouping data](#grouping-data)
+      * [Find distinct items, removing duplicates](#find-distinct-items-removing-duplicates)
+      * [Find unique items](#find-unique-items)
+      * [Find duplicate items](#find-duplicate-items)
+      * [Find lines that are in one file, but not in another](#find-lines-that-are-in-one-file-but-not-in-another)
+      * [Split data into files based on a field](#split-data-into-files-based-on-a-field)
+   * [Frequency counts and distributions](#frequency-counts-and-distributions)
+      * [get a frequency count of items, or find common items](#get-a-frequency-count-of-items-or-find-common-items)
+      * [Find the n most common items](#find-the-n-most-common-items)
+      * [Better frequency counts](#better-frequency-counts)
+      * [Histogram of values](#histogram-of-values)
+   * [SPECIALIZED TOOLS FOR AGGREGATION, SUMMARY, ANALYSIS AND REPORTING](#specialized-tools-for-aggregation-summary-analysis-and-reporting)
+      * [stats](#stats)
+      * [csvstat](#csvstat)
+      * [datamash](#datamash)
+         * [quick grouped stats with datamash](#quick-grouped-stats-with-datamash)
+         * [Cross tables/pivot tables with datamash](#cross-tablespivot-tables-with-datamash)
+   * [csv/tsv:](#csvtsv)
+      * [csvkit](#csvkit)
+   * [json](#json)
+      * [jq](#jq)
+   * [Generating data](#generating-data)
+      * [Generating columns of data by column](#generating-columns-of-data-by-column)
+      * [Generating columns of data by row](#generating-columns-of-data-by-row)
+      * [Generating a sequence of letters:](#generating-a-sequence-of-letters)
+      * [Generating random numbers](#generating-random-numbers)
+         * [jot](#jot)
+      * [Generating permutations with shuf](#generating-permutations-with-shuf)
+   * [Sorting](#sorting)
+      * [gnusort on osx via coreutils](#gnusort-on-osx-via-coreutils)
+         * [sort items lexicographically, numerically (gnu sort)](#sort-items-lexicographically-numerically-gnu-sort)
+         * [sort with size units, (k, m, etc)](#sort-with-size-units-k-m-etc)
+   * [Batch and parallel execution with xargs and parallel](#batch-and-parallel-execution-with-xargs-and-parallel)
+      * [xargs](#xargs)
+      * [GNU parallel](#gnu-parallel)
+   * [Visualization](#visualization)
+      * [Sparklines](#sparklines)
+   * [Misc](#misc)
+      * [Progress bars in pipes](#progress-bars-in-pipes)
+
+<!-- Created by https://github.com/ekalinin/github-markdown-toc -->
+<!-- Added by: juddagnall, at: Sat Sep 14 18:23:03 PDT 2024 -->
 
 <!--te-->
 
@@ -320,7 +328,65 @@ Here's an example of some data that is delimited by 'START' and 'END'
      11
      12
      END
- 
+
+#### Going deeper - Extracting nested fields with the perl flip-flop operator
+
+My friend Robert Stone pointed out that the flip-flop operators can be nested,
+and you can use this technique to find nested delimiters. Note that for this to
+work, you need to have separate start/end delimters for each section.  
+
+You can use `/start1/../end1/ and /start_inner/../end_inner/` to find start2 within
+start1 blocks.
+
+Note that if this gets much more complicated, you will likely be better off using a dedicated parser, but you can go as deep
+as you want to!
+
+In this case, we'll parse some simple XML-like structure.
+
+```
+cat > outer_inner.text <<EOF
+ 00
+ <OUTER>
+	01
+   <INNER>
+     1
+     2
+   </INNER>
+     30
+     40
+ </OUTER>
+ 50
+ 60
+ 70
+ <OUTER>
+   80 
+   <INNER>
+   4
+   5
+   </INNER>
+   90
+ </OUTER>
+ 100
+ EOF
+```
+
+And we'll extract the inner parts like this:
+
+```
+perl -nE'print if /<OUTER/../<\/OUTER/ and /<INNER/../<\/INNER/' outer_inner.txt
+ <INNER>
+  1
+  2
+ </INNER>
+ <INNER>
+ 4
+ 5
+ </INNER>
+```
+
+Naturally, if you don't want the tags, you could either filter them out, or filter in: keep only the lines with digits.
+
+
 ## EXTRACTION
 
 Extraction is a subset of transformation, but it is important enough to have
@@ -1308,7 +1374,7 @@ one-liner)
      2017-11-27 43080.1879794521
 
 Naturally, there are other ways to do this specific computation, 
-e.g. `cat /tmp/a | datamash --group 1 mean 2`, 
+e.g. `cat /tmp/a | datamash -W --group 1 mean 2`, 
 but sometimes it's useful to split the files for later processing.
 
 See http://www.theunixschool.com/2012/06/awk-10-examples-to-split-file-into.html for some more examples.
@@ -1503,12 +1569,13 @@ For very simple summary stats, I often turn to the `stats` command or
 `csvstat`. However, if I want to do a bit more, like aggregate by one or more
 columns, `gnu datamash` is very useful. It handles large streamed data sets
 very quickly, and has a variety of statistical functions available. By default
-it breaks on continuous whitespace. Use the -t option to break on tabs,
-possibly after transforming data via `csvformat -T` if you have csv input data.
+it breaks on tabs. Use the -W option to break on whitespace.
+Convert CSV data to TSV transforming data via `csvformat -T` if you have csv input data.
 
 From the [datamash manual](https://www.gnu.org/software/datamash/manual/datamash.html):
 
 ```
+# NOTE: apparently the sample data uses tabs, while this example uses whitespace
 cat > scores.txt << EOF
 Name        Subject          Score
 Bryan       Arts             68
@@ -1518,7 +1585,7 @@ Tysza       Business         92
 Zackery     Engineering      54
 EOF
 ```
-datamash --sort --headers --group 2 mean 3 sstdev 3 < scores.txt
+datamash -W --sort --headers --group 2 mean 3 sstdev 3 < scores.txt
 
 ```
 GroupBy(Subject)   mean(Score)   sstdev(Score)
@@ -1541,7 +1608,7 @@ Social-Sciences    60.2667       17.2273
     EOF
 
 Create a pivot table that has the year column vs. the state column, summing
-amount column for each cell.
+the `amount` column for each cell.
 
     cat data2.tsv | datamash -H crosstab 1,2 sum 4
      GroupBy(year)   GroupBy(state)  sum(amount)
