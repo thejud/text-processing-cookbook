@@ -78,6 +78,7 @@ Table of Contents
       * [Generating random numbers](#generating-random-numbers)
          * [jot](#jot)
       * [Generating permutations with shuf](#generating-permutations-with-shuf)
+      * [Generating date sequences](#generating-date-sequences)
    * [Sorting](#sorting)
       * [gnusort on osx via coreutils](#gnusort-on-osx-via-coreutils)
          * [sort items lexicographically, numerically (gnu sort)](#sort-items-lexicographically-numerically-gnu-sort)
@@ -91,7 +92,7 @@ Table of Contents
       * [Progress bars in pipes](#progress-bars-in-pipes)
 
 <!-- Created by https://github.com/ekalinin/github-markdown-toc -->
-<!-- Added by: juddagnall, at: Sat Sep 14 18:23:03 PDT 2024 -->
+<!-- Added by: juddagnall, at: Mon Sep 16 23:39:22 PDT 2024 -->
 
 <!--te-->
 
@@ -1799,6 +1800,31 @@ Now, with these scores, let's get some aggregate data
      math            73.461538461538
      science         72.21875
  
+
+### Generating date sequences
+
+By combining `seq` and `gnu date`, you can generate ranges of dates. On mac, you may need to install 
+coreutils to get gdate.
+
+    for i in `seq 10`; do
+        date -I --date "2023-08-15 +${i} day" 
+    done
+     2023-08-16
+     2023-08-17
+     2023-08-18
+     2023-08-19
+     2023-08-20
+     2023-08-21
+     2023-08-22
+     2023-08-23
+     2023-08-24
+     2023-08-25
+     
+See also [dseq](https://github.com/jeroenjanssens/dsutils/blob/master/dseq)
+and another dseq in the [dateutils tool collection](https://github.com/hroptatyr/dateutils)
+
+One common use for date sequences is to identify missing dates. See the section above [join: intersect two files](#join-intersect-two-files)
+
 ## Sorting
 
 ### gnusort on osx via coreutils
