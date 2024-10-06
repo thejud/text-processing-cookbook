@@ -18,10 +18,11 @@ by **Jud Dagnall**
    transformation
    grouping-data
    frequency-counts-and-distributions
-   specialized-tools-for-aggregation-summary-analysis-and-reporting
+   specialized-data-tools
    csv-tsv-json
    sorting
    generating-data
    batch-and-parallel-execution
    visualization
+   solutions
 

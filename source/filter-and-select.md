@@ -23,7 +23,7 @@ up using, it's useful to learn enough of the feature set that you at least know
 what is possible, and when a task is likely to be accomplished quickly (e.g.
 the top result on stack overflow)
 
-See [General transformation with perl \-pE and \-nE](project:transformations.md#general-transformation-with-perl)
+See [General transformation with perl \-pE and \-nE](project:transformation.md)
 for using perl as a general purpose filter.
 
 grep (or ag) is great when you want to select lines based on a pattern.

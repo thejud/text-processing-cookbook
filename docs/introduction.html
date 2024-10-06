@@ -64,12 +64,64 @@ events over a period of time.</p>
 of commands that are very effective on small to medium sized datasets (able to
 fit on a single machine). Without doing a lot of programming, I can do
 exploratory analysis, and answer many types of questions quickly.</p>
-<p>For example, sometime I want to print the last field in a series of lines
-that match the pattern “DEBUG”. <code class="docutils literal notranslate"><span class="pre">awk</span></code> is <em>one</em> way to do this:</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">grep</span> <span class="s2">&quot;DEBUG&quot;</span> <span class="n">myfile</span> <span class="o">|</span> <span class="n">awk</span> <span class="s1">&#39;{print $NF}&#39;</span>
+<p>Here is a reasonably complex example:</p>
+<p>On a project, a coworker asked what dates were available to analyze
+in a machine learning project. The data had been collected into S3, grouped
+by event class, user, and date. As I knew where the data was stored in S3,
+I was able to quickly list the files using an <code class="docutils literal notranslate"><span class="pre">s3</span> <span class="pre">ls</span> <span class="pre">--recursive</span></code> command
+and store that in a file for quick summarization.</p>
+<p>The S3 output was a list of several hundred files approximately like below.
+Each line has a creation data, a size, and then the file path that encodes:</p>
+<ul class="simple">
+<li><p>an event class</p></li>
+<li><p>a user id</p></li>
+<li><p>a date</p></li>
+<li><p>the actual filename</p></li>
+</ul>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="mi">2024</span><span class="o">-</span><span class="mi">09</span><span class="o">-</span><span class="mi">22</span> <span class="mi">139769207</span> <span class="n">data</span><span class="o">/</span><span class="n">class</span><span class="o">=</span><span class="mi">3002</span><span class="o">/</span><span class="n">user</span><span class="o">=</span><span class="n">aaa</span><span class="o">/</span><span class="n">date</span><span class="o">=</span><span class="mi">2024</span><span class="o">-</span><span class="mi">09</span><span class="o">-</span><span class="mi">21</span><span class="o">/</span><span class="n">part</span><span class="o">-</span><span class="mi">00005</span>
+<span class="mi">2024</span><span class="o">-</span><span class="mi">10</span><span class="o">-</span><span class="mi">04</span>   <span class="mi">8235665</span> <span class="n">data</span><span class="o">/</span><span class="n">class</span><span class="o">=</span><span class="mi">1007</span><span class="o">/</span><span class="n">user</span><span class="o">=</span><span class="n">aaa</span><span class="o">/</span><span class="n">date</span><span class="o">=</span><span class="mi">2024</span><span class="o">-</span><span class="mi">10</span><span class="o">-</span><span class="mi">03</span><span class="o">/</span><span class="n">part</span><span class="o">-</span><span class="mi">00009</span>
+<span class="mi">2024</span><span class="o">-</span><span class="mi">10</span><span class="o">-</span><span class="mi">04</span>     <span class="mi">26936</span> <span class="n">data</span><span class="o">/</span><span class="n">class</span><span class="o">=</span><span class="mi">103006</span><span class="o">/</span><span class="n">user</span><span class="o">=</span><span class="n">bbb</span><span class="o">/</span><span class="n">date</span><span class="o">=</span><span class="mi">2024</span><span class="o">-</span><span class="mi">10</span><span class="o">-</span><span class="mi">03</span><span class="o">/</span><span class="n">part</span><span class="o">-</span><span class="mi">00008</span>
+<span class="mi">2024</span><span class="o">-</span><span class="mi">09</span><span class="o">-</span><span class="mi">13</span>  <span class="mi">92385199</span> <span class="n">data</span><span class="o">/</span><span class="n">class</span><span class="o">=</span><span class="mi">1010</span><span class="o">/</span><span class="n">user</span><span class="o">=</span><span class="n">aaa</span><span class="o">/</span><span class="n">date</span><span class="o">=</span><span class="mi">2024</span><span class="o">-</span><span class="mi">09</span><span class="o">-</span><span class="mi">12</span><span class="o">/</span><span class="n">part</span><span class="o">-</span><span class="mi">00003</span>
+<span class="mi">2024</span><span class="o">-</span><span class="mi">10</span><span class="o">-</span><span class="mi">03</span>  <span class="mi">51873127</span> <span class="n">data</span><span class="o">/</span><span class="n">class</span><span class="o">=</span><span class="mi">1007</span><span class="o">/</span><span class="n">user</span><span class="o">=</span><span class="n">aaa</span><span class="o">/</span><span class="n">date</span><span class="o">=</span><span class="mi">2024</span><span class="o">-</span><span class="mi">10</span><span class="o">-</span><span class="mi">02</span><span class="o">/</span><span class="n">part</span><span class="o">-</span><span class="mi">00001</span>
+<span class="mi">2024</span><span class="o">-</span><span class="mi">09</span><span class="o">-</span><span class="mi">10</span>     <span class="mi">52364</span> <span class="n">data</span><span class="o">/</span><span class="n">class</span><span class="o">=</span><span class="mi">3001</span><span class="o">/</span><span class="n">user</span><span class="o">=</span><span class="n">aaa</span><span class="o">/</span><span class="n">date</span><span class="o">=</span><span class="mi">2024</span><span class="o">-</span><span class="mi">09</span><span class="o">-</span><span class="mi">09</span><span class="o">/</span><span class="n">part</span><span class="o">-</span><span class="mi">00003</span>
+<span class="mi">2024</span><span class="o">-</span><span class="mi">09</span><span class="o">-</span><span class="mi">11</span>  <span class="mi">53877463</span> <span class="n">data</span><span class="o">/</span><span class="n">class</span><span class="o">=</span><span class="mi">1007</span><span class="o">/</span><span class="n">user</span><span class="o">=</span><span class="n">aaa</span><span class="o">/</span><span class="n">date</span><span class="o">=</span><span class="mi">2024</span><span class="o">-</span><span class="mi">09</span><span class="o">-</span><span class="mi">10</span><span class="o">/</span><span class="n">part</span><span class="o">-</span><span class="mi">00001</span>
+<span class="mi">2024</span><span class="o">-</span><span class="mi">10</span><span class="o">-</span><span class="mi">05</span>  <span class="mi">36197597</span> <span class="n">data</span><span class="o">/</span><span class="n">class</span><span class="o">=</span><span class="mi">1007</span><span class="o">/</span><span class="n">user</span><span class="o">=</span><span class="n">bbb</span><span class="o">/</span><span class="n">date</span><span class="o">=</span><span class="mi">2024</span><span class="o">-</span><span class="mi">10</span><span class="o">-</span><span class="mi">04</span><span class="o">/</span><span class="n">part</span><span class="o">-</span><span class="mi">00005</span>
+<span class="mi">2024</span><span class="o">-</span><span class="mi">09</span><span class="o">-</span><span class="mi">14</span>     <span class="mi">54249</span> <span class="n">data</span><span class="o">/</span><span class="n">class</span><span class="o">=</span><span class="mi">103006</span><span class="o">/</span><span class="n">user</span><span class="o">=</span><span class="n">aaa</span><span class="o">/</span><span class="n">date</span><span class="o">=</span><span class="mi">2024</span><span class="o">-</span><span class="mi">09</span><span class="o">-</span><span class="mi">13</span><span class="o">/</span><span class="n">part</span><span class="o">-</span><span class="mi">00000</span>
+<span class="mi">2024</span><span class="o">-</span><span class="mi">09</span><span class="o">-</span><span class="mi">03</span> <span class="mi">146174053</span> <span class="n">data</span><span class="o">/</span><span class="n">class</span><span class="o">=</span><span class="mi">3002</span><span class="o">/</span><span class="n">user</span><span class="o">=</span><span class="n">aaa</span><span class="o">/</span><span class="n">date</span><span class="o">=</span><span class="mi">2024</span><span class="o">-</span><span class="mi">09</span><span class="o">-</span><span class="mi">02</span><span class="o">/</span><span class="n">part</span><span class="o">-</span><span class="mi">00001</span>
 </pre></div>
 </div>
-<p>See <a class="reference internal" href="extraction.html#printing-the-last-column-awk-and-perl"><span class="std std-ref">the recipe</span></a></p>
+<p>I wanted to see the first and last dates available, and have a rough idea if
+there were any big gaps by counting the number of dates between the first and last.</p>
+<p>Here’s the abbreviated output, with the user, event class, first and last date and count of files.</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">user</span><span class="o">=</span><span class="n">aaa</span>  <span class="n">class</span><span class="o">=</span><span class="mi">1007</span>    <span class="n">date</span><span class="o">=</span><span class="mi">2024</span><span class="o">-</span><span class="mi">09</span><span class="o">-</span><span class="mi">05</span>  <span class="n">date</span><span class="o">=</span><span class="mi">2024</span><span class="o">-</span><span class="mi">10</span><span class="o">-</span><span class="mi">05</span>  <span class="mi">31</span>
+<span class="n">user</span><span class="o">=</span><span class="n">aaa</span>  <span class="n">class</span><span class="o">=</span><span class="mi">3001</span>    <span class="n">date</span><span class="o">=</span><span class="mi">2024</span><span class="o">-</span><span class="mi">08</span><span class="o">-</span><span class="mi">25</span>  <span class="n">date</span><span class="o">=</span><span class="mi">2024</span><span class="o">-</span><span class="mi">10</span><span class="o">-</span><span class="mi">05</span>  <span class="mi">42</span>
+<span class="n">user</span><span class="o">=</span><span class="n">aaa</span>  <span class="n">class</span><span class="o">=</span><span class="mi">3002</span>    <span class="n">date</span><span class="o">=</span><span class="mi">2024</span><span class="o">-</span><span class="mi">08</span><span class="o">-</span><span class="mi">25</span>  <span class="n">date</span><span class="o">=</span><span class="mi">2024</span><span class="o">-</span><span class="mi">10</span><span class="o">-</span><span class="mi">05</span>  <span class="mi">42</span>
+<span class="n">user</span><span class="o">=</span><span class="n">bbb</span>  <span class="n">class</span><span class="o">=</span><span class="mi">1007</span>    <span class="n">date</span><span class="o">=</span><span class="mi">2024</span><span class="o">-</span><span class="mi">09</span><span class="o">-</span><span class="mi">30</span>  <span class="n">date</span><span class="o">=</span><span class="mi">2024</span><span class="o">-</span><span class="mi">10</span><span class="o">-</span><span class="mi">05</span>  <span class="mi">6</span>
+<span class="n">user</span><span class="o">=</span><span class="n">bbb</span>  <span class="n">class</span><span class="o">=</span><span class="mi">3001</span>    <span class="n">date</span><span class="o">=</span><span class="mi">2024</span><span class="o">-</span><span class="mi">09</span><span class="o">-</span><span class="mi">25</span>  <span class="n">date</span><span class="o">=</span><span class="mi">2024</span><span class="o">-</span><span class="mi">10</span><span class="o">-</span><span class="mi">05</span>  <span class="mi">11</span>
+<span class="n">user</span><span class="o">=</span><span class="n">bbb</span>  <span class="n">class</span><span class="o">=</span><span class="mi">3002</span>    <span class="n">date</span><span class="o">=</span><span class="mi">2024</span><span class="o">-</span><span class="mi">09</span><span class="o">-</span><span class="mi">25</span>  <span class="n">date</span><span class="o">=</span><span class="mi">2024</span><span class="o">-</span><span class="mi">10</span><span class="o">-</span><span class="mi">04</span>  <span class="mi">10</span>
+</pre></div>
+</div>
+<p>and here is the transformation I used to summarize the data:</p>
+<div class="highlight-shell notranslate"><div class="highlight"><pre><span></span>cat<span class="w"> </span>/tmp/files<span class="w"> </span>
+<span class="w">    </span><span class="p">|</span><span class="w"> </span>awk<span class="w"> </span><span class="s1">&#39;{print $NF}&#39;</span><span class="w"> </span><span class="se">\</span>
+<span class="w">    </span><span class="p">|</span><span class="w"> </span>grep<span class="w"> </span><span class="nv">user</span><span class="o">=</span>
+<span class="w">    </span><span class="p">|</span><span class="w"> </span>perl<span class="w"> </span>-pe<span class="s1">&#39;s/part.*//&#39;</span><span class="w">  </span>
+<span class="w">    </span><span class="p">|</span><span class="w"> </span>perl<span class="w"> </span>-pe<span class="s1">&#39;s/.*data\///&#39;</span><span class="w"> </span>
+<span class="w">    </span><span class="p">|</span><span class="w"> </span>tr<span class="w"> </span>/<span class="w"> </span><span class="s1">&#39;\t&#39;</span><span class="w">  </span>
+<span class="w">    </span><span class="p">|</span><span class="w"> </span>sort<span class="w"> </span>--uniq
+<span class="w">    </span><span class="p">|</span><span class="w"> </span>datamash<span class="w"> </span>--group<span class="w"> </span><span class="m">2</span>,1<span class="w"> </span>first<span class="w"> </span><span class="m">3</span><span class="w"> </span>last<span class="w"> </span><span class="m">3</span><span class="w"> </span>count<span class="w"> </span><span class="m">3</span>
+<span class="w">    </span><span class="p">|</span><span class="w"> </span>column<span class="w"> </span>-t
+</pre></div>
+</div>
+<p>See the recipe <a class="reference internal" href="solutions.html#find-available-data-by-user-event-class-and-date"><span class="std std-ref">Find available data by user, event class and date</span></a></p>
+<p>If you look at this and think, “I could do it in fewer steps!” then congratulations!
+I encourage you to poke around a bit and see some of the recipes, as there will likely
+be some tools or approaches you haven’t tried, or perhaps only forgot!</p>
+<p>If you look at this, and think, that’s really cool, but WTF just happened, then
+keep reading. Each of these steps has at least one recipe. While it has taken
+me a long time to get to this point, I was able to summarize the data in a
+minute or two by combining “simple” steps and progressively refining the results
+until I got what I wanted.</p>
 <p>I try to remember a set of techniques that I can put together on the fly to
 answer questions in under 60 seconds, often much less. More complicated
 questions can be answered via an actual program, or with higher-level tools.</p>
@@ -84,7 +136,7 @@ the command is indented by one space. I find it annoying to remove the “$ “
 prefix from commands when copying and pasting from a page.</p>
 <p>I also use the <code class="docutils literal notranslate"><span class="pre">cat</span> <span class="pre">foo</span> <span class="pre">|</span> <span class="pre">bar</span></code> form in many places rather than <code class="docutils literal notranslate"><span class="pre">bar</span> <span class="pre">&lt;</span> <span class="pre">foo</span></code>
 because I’ve fat-fingered ‘&gt;’ instead of ‘&lt;’ one too many times, overwriting my
-source file. Additionally, I also use most of these scripts as part of a larger
+source file. Additionally, I use most of these scripts as part of a larger
 pipeline, so there’s often another few steps to generate the input instead of a
 simple <code class="docutils literal notranslate"><span class="pre">cat</span></code> command. Here’s an example of how a command and its output will be
 formatted.</p>
@@ -135,10 +187,22 @@ of input even if I only provide one line of input, e.g.
             <p class="logo"><a href="index.html">
               <img class="logo" src="_static/80s_keycaps.png" alt="Logo of The Text Processing Cookbook"/>
             </a></p>
-<h1 class="logo"><a href="index.html">The Text Processing Cookbook</a></h1>
+<p class="logo">
+  <a href="index.html">
+    <img class="logo" src="_static/../80s_keycaps.png" alt="Logo" />
+    
+  </a>
+</p>
 
 
 
+
+
+
+<p>
+<iframe src="https://ghbtns.com/github-btn.html?user=thejud&repo=the-text-processing-cookbook&type=watch&count=true&size=large&v=2"
+  allowtransparency="true" frameborder="0" scrolling="0" width="200px" height="35px"></iframe>
+</p>
 
 
 
@@ -165,7 +229,7 @@ of input even if I only provide one line of input, e.g.
 <li class="toctree-l1"><a class="reference internal" href="transformation.html">Transformation</a></li>
 <li class="toctree-l1"><a class="reference internal" href="grouping-data.html">Grouping Data</a></li>
 <li class="toctree-l1"><a class="reference internal" href="frequency-counts-and-distributions.html">Frequency Counts and Distributions</a></li>
-<li class="toctree-l1"><a class="reference internal" href="specialized-tools-for-aggregation-summary-analysis-and-reporting.html">Specialized Tools for Aggregation, Summary, Analysis and Reporting</a></li>
+<li class="toctree-l1"><a class="reference internal" href="specialized-data-tools.html">Specialized Tools for Aggregation, Summary, Analysis and Reporting</a></li>
 <li class="toctree-l1"><a class="reference internal" href="csv-tsv-json.html">CSV and TSV</a></li>
 <li class="toctree-l1"><a class="reference internal" href="csv-tsv-json.html#json">json</a></li>
 <li class="toctree-l1"><a class="reference internal" href="sorting.html">Sorting</a></li>
@@ -173,6 +237,7 @@ of input even if I only provide one line of input, e.g.
 <li class="toctree-l1"><a class="reference internal" href="batch-and-parallel-execution.html">Batch and parallel execution with xargs and parallel</a></li>
 <li class="toctree-l1"><a class="reference internal" href="visualization.html">Visualization</a></li>
 <li class="toctree-l1"><a class="reference internal" href="visualization.html#misc">Misc</a></li>
+<li class="toctree-l1"><a class="reference internal" href="solutions.html">Solutions: Putting it all together</a></li>
 </ul>
 
 <div class="relations">
@@ -209,7 +274,7 @@ of input even if I only provide one line of input, e.g.
     </div>
 
     
-    <a href="https://github.com//" class="github">
+    <a href="https://github.com/thejud/the-text-processing-cookbook" class="github">
         <img src="_static/github-banner.svg" alt="Fork me on GitHub" class="github"/>
     </a>
     

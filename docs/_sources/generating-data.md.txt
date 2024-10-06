@@ -123,5 +123,5 @@ coreutils to get gdate.
 See also [dseq](https://github.com/jeroenjanssens/dsutils/blob/master/dseq)
 and another dseq in the [dateutils tool collection](https://github.com/hroptatyr/dateutils)
 
-One common use for date sequences is to identify missing dates. See the section above [join: intersect two files](#join-intersect-two-files)
+One common use for date sequences is to identify missing dates. See the section above [join: intersect two files](project:transformation.md#join-intersect-two-files)
 

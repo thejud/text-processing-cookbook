@@ -3,7 +3,6 @@
 perl is my tool of choice for many line-oriented transformations. It's worth
 learning a few tricks, and investing some time with one or more of perl, sed or awk.
 
-{general-transformations-with-perl}=
 ## General transformation with perl -pE and -nE
 
 The perl -p option turns on filter mode. Any changes made by the expression
