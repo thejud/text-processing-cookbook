@@ -1,0 +1,259 @@
+<!DOCTYPE html>
+
+<html lang="en" data-content_root="./">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <title>Generating Data &#8212; The Text Processing Cookbook 0.1 documentation</title>
+    <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=d1102ebc" />
+    <link rel="stylesheet" type="text/css" href="_static/basic.css?v=c058f7c8" />
+    <link rel="stylesheet" type="text/css" href="_static/alabaster.css?v=27fed22d" />
+    <script src="_static/documentation_options.js?v=2709fde1"></script>
+    <script src="_static/doctools.js?v=9a2dae69"></script>
+    <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Batch and parallel execution with xargs and parallel" href="batch-and-parallel-execution.html" />
+    <link rel="prev" title="Sorting" href="sorting.html" />
+   
+  <link rel="stylesheet" href="_static/custom.css" type="text/css" />
+  
+
+  
+  
+
+  </head><body>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          
+
+          <div class="body" role="main">
+            
+  <section id="generating-data">
+<h1>Generating Data<a class="headerlink" href="#generating-data" title="Link to this heading">¶</a></h1>
+<section id="generating-columns-of-data-by-column">
+<h2>Generating columns of data by column<a class="headerlink" href="#generating-columns-of-data-by-column" title="Link to this heading">¶</a></h2>
+<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>seq 20 | pr -t -3 | column -t
+1  8   15
+2  9   16
+3  10  17
+4  11  18
+5  12  19
+6  13  20
+7  14
+</pre></div>
+</div>
+</section>
+<section id="generating-columns-of-data-by-row">
+<h2>Generating columns of data by row<a class="headerlink" href="#generating-columns-of-data-by-row" title="Link to this heading">¶</a></h2>
+<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>seq 20 | pr -t -3 -a | column -t
+1   2   3
+4   5   6
+7   8   9
+10  11  12
+13  14  15
+16  17  18
+19  20
+</pre></div>
+</div>
+</section>
+<section id="generating-a-sequence-of-letters">
+<h2>Generating a sequence of letters:<a class="headerlink" href="#generating-a-sequence-of-letters" title="Link to this heading">¶</a></h2>
+<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>perl -E&#39;say for &quot;a&quot;..&quot;d&quot;&#39;
+ a
+ b
+ c
+ d
+</pre></div>
+</div>
+</section>
+<section id="generating-random-numbers">
+<h2>Generating random numbers<a class="headerlink" href="#generating-random-numbers" title="Link to this heading">¶</a></h2>
+<p>10 random numbers between 0 and 19</p>
+<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>perl -E&#39;say int(rand(20)) for 1..10&#39;
+</pre></div>
+</div>
+<section id="jot">
+<h3>jot<a class="headerlink" href="#jot" title="Link to this heading">¶</a></h3>
+<p>Generate various sequences and random numbers</p>
+<p>10 ints between 0 and 100</p>
+<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>jot -r 10 0 100
+</pre></div>
+</div>
+<p>5 floats between 0.000 and 1.000</p>
+<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>jot -r 5 0.000 1.000
+</pre></div>
+</div>
+<p>random letters</p>
+<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>jot -r -c 10 97 122
+</pre></div>
+</div>
+</section>
+</section>
+<section id="generating-permutations-with-shuf">
+<h2>Generating permutations with shuf<a class="headerlink" href="#generating-permutations-with-shuf" title="Link to this heading">¶</a></h2>
+<p><code class="docutils literal notranslate"><span class="pre">shuf</span></code>, part of <code class="docutils literal notranslate"><span class="pre">coreutils</span></code>, is useful for generating random permutations.</p>
+<p>shuf is best known for generating a “shuffled” version of a file, or selecting
+random lines. However, it can also be used to generate some sample data quickly
+given a few input values. The <code class="docutils literal notranslate"><span class="pre">-r</span></code> flags allows repeats. <code class="docutils literal notranslate"><span class="pre">-n</span> <span class="pre">100</span></code> selects 100
+samples. <code class="docutils literal notranslate"><span class="pre">-e</span></code> treats additional command line parameters like input lines.</p>
+<p>In this example, I want to take 100 random selections ‘foo’, ‘bar’ or ‘baz’</p>
+<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>shuf -r -n 100 -e foo bar baz | head
+ baz
+ baz
+ baz
+ baz
+ bar
+ foo
+ foo
+ bar
+ bar
+ baz
+</pre></div>
+</div>
+<p>Here’s a more complicated example of generating some test scores for some
+random student ids in random classes (note that here I’m using gshuf. On Mac
+OSX, when installing coreutils via brew, it uses the ‘g’ prefix for the gnu
+tools so they don’t conflict with the osx standard (BSD) utilities of the same
+name). Here I’m also using (…) to combine the output of multiple commands,
+and converting spaces to tabs during output so I have an actual TSV file:</p>
+<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>seq 100 | gshuf -n 100 -r &gt; student_ids.txt
+gshuf -n 100 -r -e math science art &gt; classes.txt
+seq 50 100 | gshuf -n 100 -r &gt; scores.txt
+(
+  echo &quot;id class score&quot;;
+  paste -d &quot; &quot; student_ids.txt classes.txt scores.txt;
+) | tr &#39; &#39; &#39;\t&#39; &gt; report.tsv
+</pre></div>
+</div>
+<p>Now, with these scores, let’s get some aggregate data</p>
+<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>cat report.tsv | datamash -sH --wh --group 2 mean 3 | column -t
+ GroupBy(class)  mean(score)
+ art             73.214285714286
+ math            73.461538461538
+ science         72.21875
+</pre></div>
+</div>
+</section>
+<section id="generating-date-sequences">
+<h2>Generating date sequences<a class="headerlink" href="#generating-date-sequences" title="Link to this heading">¶</a></h2>
+<p>By combining <code class="docutils literal notranslate"><span class="pre">seq</span></code> and <code class="docutils literal notranslate"><span class="pre">gnu</span> <span class="pre">date</span></code>, you can generate ranges of dates. On mac, you may need to install
+coreutils to get gdate.</p>
+<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>for i in `seq 10`; do
+    date -I --date &quot;2023-08-15 +${i} day&quot; 
+done
+ 2023-08-16
+ 2023-08-17
+ 2023-08-18
+ 2023-08-19
+ 2023-08-20
+ 2023-08-21
+ 2023-08-22
+ 2023-08-23
+ 2023-08-24
+ 2023-08-25
+</pre></div>
+</div>
+<p>See also <a class="reference external" href="https://github.com/jeroenjanssens/dsutils/blob/master/dseq">dseq</a>
+and another dseq in the <a class="reference external" href="https://github.com/hroptatyr/dateutils">dateutils tool collection</a></p>
+<p>One common use for date sequences is to identify missing dates. See the section above <a class="reference internal" href="#join-intersect-two-files"><span class="xref myst">join: intersect two files</span></a></p>
+</section>
+</section>
+
+
+          </div>
+          
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="Main">
+        <div class="sphinxsidebarwrapper">
+            <p class="logo"><a href="index.html">
+              <img class="logo" src="_static/80s_keycaps.png" alt="Logo of The Text Processing Cookbook"/>
+            </a></p>
+<h1 class="logo"><a href="index.html">The Text Processing Cookbook</a></h1>
+
+
+
+
+
+
+
+
+
+<search id="searchbox" style="display: none" role="search">
+    <div class="searchformwrapper">
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" placeholder="Search"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</search>
+<script>document.getElementById('searchbox').style.display = "block"</script><h3>Navigation</h3>
+<p class="caption" role="heading"><span class="caption-text">Contents</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="introduction.html">An Introduction</a></li>
+<li class="toctree-l1"><a class="reference internal" href="filter-and-select.html">Filter and Select</a></li>
+<li class="toctree-l1"><a class="reference internal" href="extraction.html">Extraction</a></li>
+<li class="toctree-l1"><a class="reference internal" href="transformation.html">Transformation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="grouping-data.html">Grouping Data</a></li>
+<li class="toctree-l1"><a class="reference internal" href="frequency-counts-and-distributions.html">Frequency Counts and Distributions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="specialized-tools-for-aggregation-summary-analysis-and-reporting.html">Specialized Tools for Aggregation, Summary, Analysis and Reporting</a></li>
+<li class="toctree-l1"><a class="reference internal" href="csv-tsv-json.html">CSV and TSV</a></li>
+<li class="toctree-l1"><a class="reference internal" href="csv-tsv-json.html#json">json</a></li>
+<li class="toctree-l1"><a class="reference internal" href="sorting.html">Sorting</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Generating Data</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#generating-columns-of-data-by-column">Generating columns of data by column</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#generating-columns-of-data-by-row">Generating columns of data by row</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#generating-a-sequence-of-letters">Generating a sequence of letters:</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#generating-random-numbers">Generating random numbers</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#generating-permutations-with-shuf">Generating permutations with shuf</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#generating-date-sequences">Generating date sequences</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="batch-and-parallel-execution.html">Batch and parallel execution with xargs and parallel</a></li>
+<li class="toctree-l1"><a class="reference internal" href="visualization.html">Visualization</a></li>
+<li class="toctree-l1"><a class="reference internal" href="visualization.html#misc">Misc</a></li>
+</ul>
+
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="index.html">Documentation overview</a><ul>
+      <li>Previous: <a href="sorting.html" title="previous chapter">Sorting</a></li>
+      <li>Next: <a href="batch-and-parallel-execution.html" title="next chapter">Batch and parallel execution with xargs and parallel</a></li>
+  </ul></li>
+</ul>
+</div>
+
+
+
+
+
+
+
+
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &#169;2024, Jud Dagnall.
+      
+      |
+      Powered by <a href="https://www.sphinx-doc.org/">Sphinx 8.0.2</a>
+      &amp; <a href="https://alabaster.readthedocs.io">Alabaster 1.0.0</a>
+      
+      |
+      <a href="_sources/generating-data.md.txt"
+          rel="nofollow">Page source</a>
+    </div>
+
+    
+
+    
+  </body>
+</html>

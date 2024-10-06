@@ -1,0 +1,205 @@
+<!DOCTYPE html>
+
+<html lang="en" data-content_root="./">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <title>CSV and TSV &#8212; The Text Processing Cookbook 0.1 documentation</title>
+    <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=d1102ebc" />
+    <link rel="stylesheet" type="text/css" href="_static/basic.css?v=c058f7c8" />
+    <link rel="stylesheet" type="text/css" href="_static/alabaster.css?v=27fed22d" />
+    <script src="_static/documentation_options.js?v=2709fde1"></script>
+    <script src="_static/doctools.js?v=9a2dae69"></script>
+    <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Sorting" href="sorting.html" />
+    <link rel="prev" title="Specialized Tools for Aggregation, Summary, Analysis and Reporting" href="specialized-tools-for-aggregation-summary-analysis-and-reporting.html" />
+   
+  <link rel="stylesheet" href="_static/custom.css" type="text/css" />
+  
+
+  
+  
+
+  </head><body>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          
+
+          <div class="body" role="main">
+            
+  <section id="csv-and-tsv">
+<h1>CSV and TSV<a class="headerlink" href="#csv-and-tsv" title="Link to this heading">¶</a></h1>
+<section id="csvkit">
+<h2>csvkit<a class="headerlink" href="#csvkit" title="Link to this heading">¶</a></h2>
+<p><a class="reference external" href="https://csvkit.readthedocs.io/">csvkit</a> is an excellent set of tools (and
+python libraries) for working with CSV data. I encounter (and generate) a
+variety of csv data, and I use many of these frequently. Note that the suite
+also works with tab-separated values (TSV).</p>
+<p>I tend to use:</p>
+<ul class="simple">
+<li><p>csvlook - pretty printing of csv files</p></li>
+<li><p>csvcut - extract columns from CSV</p></li>
+<li><p>csvformat - convert CSV &lt;=&gt; TSV</p></li>
+<li><p>csvsql - run SQL queries against CSV data</p></li>
+<li><p>csvgrep - search by column in CSV data</p></li>
+<li><p>csvstats - summary statistics for CSV file</p></li>
+</ul>
+<p>Here’s an introduction:</p>
+<p>https://source.opennews.org/articles/eleven-awesome-things-you-can-do-csvkit/</p>
+</section>
+</section>
+<section id="json">
+<h1>json<a class="headerlink" href="#json" title="Link to this heading">¶</a></h1>
+<ul class="simple">
+<li><p>jq - CLI query language for json. Doesn’t handle very large ints.</p></li>
+<li><p>jsonpp, json_pp - pretty printing,</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">python</span> <span class="pre">-m</span> <span class="pre">json.tool</span></code> - pretty printing. Doesn’t handle json per lin</p></li>
+</ul>
+<section id="jq">
+<h2>jq<a class="headerlink" href="#jq" title="Link to this heading">¶</a></h2>
+<p>Here’s some sample json (created using the <a class="reference external" href="https://github.com/jpmens/jo">jo json authoring tool</a> )</p>
+<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>{ jo user[name]=jud user[id]=17 ; jo user[name]=joe user[id]=22;} | tee json1
+{&quot;user&quot;:{&quot;name&quot;:&quot;jud&quot;,&quot;id&quot;:17}}
+{&quot;user&quot;:{&quot;name&quot;:&quot;joe&quot;,&quot;id&quot;:22}}
+</pre></div>
+</div>
+<p>jq has a fully-featured query language, but since I don’t use the more advanced features very often,
+I just remember how to index down into object, and print out the raw values:</p>
+<div class="highlight-none notranslate"><div class="highlight"><pre><span></span># pretty print with colorization
+jq . myfile.json
+
+# extract user.name from every object
+jq .user.name myfile.json
+&quot;jud&quot;
+&quot;joe&quot;
+
+# get the raw (unquoted) values.
+jq -r .user.name json1
+jud
+joe
+</pre></div>
+</div>
+<p>I nearly always use jq for my json needs. However, I’ve recently been dealing with json that contains very large numeric ids.
+Unfortuntely jq rounds large integers.</p>
+<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>echo &#39;{&quot;a&quot;:11111222223333344444}&#39; | jq .
+{
+  &quot;a&quot;: 11111222223333345000
+}
+
+echo &#39;{&quot;a&quot;:11111222223333344444}&#39; | python -m json.tool
+{
+    &quot;a&quot;: 11111222223333344444
+}
+</pre></div>
+</div>
+<p>So I have been using other tools to pretty print json, like jsonpp and/or json_pp.</p>
+<p>The python json.tool pretty printer handles big ints, but doesn’t handle newline delimited json. I just saw the newlinejson package, which could help.
+Here’s a simple python solution:</p>
+<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>#!/usr/bin/env python
+from __future__ import print_function
+import fileinput
+import json
+for line in fileinput.input():
+    print(json.dumps(json.loads(line.rstrip(&#39;\r\n&#39;)), indent=2))
+</pre></div>
+</div>
+</section>
+</section>
+
+
+          </div>
+          
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="Main">
+        <div class="sphinxsidebarwrapper">
+            <p class="logo"><a href="index.html">
+              <img class="logo" src="_static/80s_keycaps.png" alt="Logo of The Text Processing Cookbook"/>
+            </a></p>
+<h1 class="logo"><a href="index.html">The Text Processing Cookbook</a></h1>
+
+
+
+
+
+
+
+
+
+<search id="searchbox" style="display: none" role="search">
+    <div class="searchformwrapper">
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" placeholder="Search"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</search>
+<script>document.getElementById('searchbox').style.display = "block"</script><h3>Navigation</h3>
+<p class="caption" role="heading"><span class="caption-text">Contents</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="introduction.html">An Introduction</a></li>
+<li class="toctree-l1"><a class="reference internal" href="filter-and-select.html">Filter and Select</a></li>
+<li class="toctree-l1"><a class="reference internal" href="extraction.html">Extraction</a></li>
+<li class="toctree-l1"><a class="reference internal" href="transformation.html">Transformation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="grouping-data.html">Grouping Data</a></li>
+<li class="toctree-l1"><a class="reference internal" href="frequency-counts-and-distributions.html">Frequency Counts and Distributions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="specialized-tools-for-aggregation-summary-analysis-and-reporting.html">Specialized Tools for Aggregation, Summary, Analysis and Reporting</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">CSV and TSV</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#csvkit">csvkit</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="#json">json</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#jq">jq</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="sorting.html">Sorting</a></li>
+<li class="toctree-l1"><a class="reference internal" href="generating-data.html">Generating Data</a></li>
+<li class="toctree-l1"><a class="reference internal" href="batch-and-parallel-execution.html">Batch and parallel execution with xargs and parallel</a></li>
+<li class="toctree-l1"><a class="reference internal" href="visualization.html">Visualization</a></li>
+<li class="toctree-l1"><a class="reference internal" href="visualization.html#misc">Misc</a></li>
+</ul>
+
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="index.html">Documentation overview</a><ul>
+      <li>Previous: <a href="specialized-tools-for-aggregation-summary-analysis-and-reporting.html" title="previous chapter">Specialized Tools for Aggregation, Summary, Analysis and Reporting</a></li>
+      <li>Next: <a href="sorting.html" title="next chapter">Sorting</a></li>
+  </ul></li>
+</ul>
+</div>
+
+
+
+
+
+
+
+
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &#169;2024, Jud Dagnall.
+      
+      |
+      Powered by <a href="https://www.sphinx-doc.org/">Sphinx 8.0.2</a>
+      &amp; <a href="https://alabaster.readthedocs.io">Alabaster 1.0.0</a>
+      
+      |
+      <a href="_sources/csv-tsv-json.md.txt"
+          rel="nofollow">Page source</a>
+    </div>
+
+    
+
+    
+  </body>
+</html>

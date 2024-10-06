@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+
+<html lang="en" data-content_root="./">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <title>Batch and parallel execution with xargs and parallel &#8212; The Text Processing Cookbook 0.1 documentation</title>
+    <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=d1102ebc" />
+    <link rel="stylesheet" type="text/css" href="_static/basic.css?v=c058f7c8" />
+    <link rel="stylesheet" type="text/css" href="_static/alabaster.css?v=27fed22d" />
+    <script src="_static/documentation_options.js?v=2709fde1"></script>
+    <script src="_static/doctools.js?v=9a2dae69"></script>
+    <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Visualization" href="visualization.html" />
+    <link rel="prev" title="Generating Data" href="generating-data.html" />
+   
+  <link rel="stylesheet" href="_static/custom.css" type="text/css" />
+  
+
+  
+  
+
+  </head><body>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          
+
+          <div class="body" role="main">
+            
+  <section id="batch-and-parallel-execution-with-xargs-and-parallel">
+<h1>Batch and parallel execution with xargs and parallel<a class="headerlink" href="#batch-and-parallel-execution-with-xargs-and-parallel" title="Link to this heading">¶</a></h1>
+<p>There are a few commands that are generally useful when working with many files.</p>
+<section id="xargs">
+<h2>xargs<a class="headerlink" href="#xargs" title="Link to this heading">¶</a></h2>
+<p>xargs allows you to generate commands by piping in parameters.</p>
+<p>A trivial example is to compress the 3 oldest files in the directory. I list
+the csv files, sorted by age(recent first), and then take the last 3. These 3
+files, one per line, are passed into xargs, which sends them to whatever
+command I specify as arguments.</p>
+<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>ls -1 -t *.csv | tail -3 | xargs -t gzip
+ gzip 19.csv 18.csv 17.csv
+</pre></div>
+</div>
+<p>I use a few options frequently:</p>
+<ul>
+<li><p><code class="docutils literal notranslate"><span class="pre">-n</span> <span class="pre">1</span></code> to only pass one argument at a time, like a for loop. Note that many
+of the common uses of xargs can also be replaced by a simple bash for loop.</p></li>
+<li><p>parameter subsitution with <code class="docutils literal notranslate"><span class="pre">-I</span> <span class="pre">%</span></code>. If I want multiple replacements, or need to an an extension, that’s a good way.</p>
+<p>ls -1 *.sql | xargs -n 1 -I % echo mycommand –logfile %.log %
+mycommand –logfile 201701.csv.log 201701.csv
+mycommand –logfile 201702.csv.log 201702.csv</p>
+</li>
+<li><p>parallel execution of commands.</p></li>
+</ul>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="c1"># gzip csv files, with four parallel processes.</span>
+<span class="c1"># print lines as we execut them, and send one file</span>
+<span class="c1"># at a time to each invocation</span>
+
+<span class="n">ls</span> <span class="o">-</span><span class="n">t</span> <span class="o">-</span><span class="mi">1</span> <span class="o">*.</span><span class="n">csv</span> <span class="o">|</span> <span class="n">xargs</span> <span class="o">-</span><span class="n">P</span> <span class="mi">4</span> <span class="o">-</span><span class="n">t</span> <span class="o">-</span><span class="n">n</span> <span class="mi">1</span> <span class="n">gzip</span>   
+ <span class="n">gzip</span> <span class="mf">04.</span><span class="n">csv</span>
+ <span class="n">gzip</span> <span class="mf">03.</span><span class="n">csv</span>
+ <span class="n">gzip</span> <span class="mf">02.</span><span class="n">csv</span>
+ <span class="n">gzip</span> <span class="mf">01.</span><span class="n">csv</span>
+</pre></div>
+</div>
+</section>
+<section id="gnu-parallel">
+<h2>GNU parallel<a class="headerlink" href="#gnu-parallel" title="Link to this heading">¶</a></h2>
+<p>Parallel is a powerful and huge tool, and has many pages of manuals and examples.</p>
+<p>However, there are a few key things that I like about running commands via parallel:</p>
+<ul class="simple">
+<li><p>easily create separate log files for each invocation.</p></li>
+<li><p>run commands on multiple machines</p></li>
+</ul>
+<p>Here are a few simple examples:</p>
+<p>gzip all csv files in a directory. Create one job per core, and provide some diagnostic output.</p>
+<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>ls *.csv | parallel --eta gzip
+</pre></div>
+</div>
+<p>More complicated, use the command substitution to create a basename, and remove
+the extension with an extended command. {} is the input, {.} is the input
+without the extension, and {/.} is the basename without the extension.</p>
+<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>ls *.gz | parallel --eta &#39;mkdir {/.} &amp;&amp; cd {/.} &amp;&amp; unzip ../{}&#39;
+</pre></div>
+</div>
+<p>See also: <a class="reference external" href="https://www.gnu.org/software/parallel/sem.html">sem</a>, part of the
+gnu parallel package, which allows you to easily limit the number of concurrent
+proceses without the complexity of parallel. Very useful for running N jobs in
+parallel inside a simple for loop.</p>
+</section>
+</section>
+
+
+          </div>
+          
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="Main">
+        <div class="sphinxsidebarwrapper">
+            <p class="logo"><a href="index.html">
+              <img class="logo" src="_static/80s_keycaps.png" alt="Logo of The Text Processing Cookbook"/>
+            </a></p>
+<h1 class="logo"><a href="index.html">The Text Processing Cookbook</a></h1>
+
+
+
+
+
+
+
+
+
+<search id="searchbox" style="display: none" role="search">
+    <div class="searchformwrapper">
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" placeholder="Search"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</search>
+<script>document.getElementById('searchbox').style.display = "block"</script><h3>Navigation</h3>
+<p class="caption" role="heading"><span class="caption-text">Contents</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="introduction.html">An Introduction</a></li>
+<li class="toctree-l1"><a class="reference internal" href="filter-and-select.html">Filter and Select</a></li>
+<li class="toctree-l1"><a class="reference internal" href="extraction.html">Extraction</a></li>
+<li class="toctree-l1"><a class="reference internal" href="transformation.html">Transformation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="grouping-data.html">Grouping Data</a></li>
+<li class="toctree-l1"><a class="reference internal" href="frequency-counts-and-distributions.html">Frequency Counts and Distributions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="specialized-tools-for-aggregation-summary-analysis-and-reporting.html">Specialized Tools for Aggregation, Summary, Analysis and Reporting</a></li>
+<li class="toctree-l1"><a class="reference internal" href="csv-tsv-json.html">CSV and TSV</a></li>
+<li class="toctree-l1"><a class="reference internal" href="csv-tsv-json.html#json">json</a></li>
+<li class="toctree-l1"><a class="reference internal" href="sorting.html">Sorting</a></li>
+<li class="toctree-l1"><a class="reference internal" href="generating-data.html">Generating Data</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Batch and parallel execution with xargs and parallel</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#xargs">xargs</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#gnu-parallel">GNU parallel</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="visualization.html">Visualization</a></li>
+<li class="toctree-l1"><a class="reference internal" href="visualization.html#misc">Misc</a></li>
+</ul>
+
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="index.html">Documentation overview</a><ul>
+      <li>Previous: <a href="generating-data.html" title="previous chapter">Generating Data</a></li>
+      <li>Next: <a href="visualization.html" title="next chapter">Visualization</a></li>
+  </ul></li>
+</ul>
+</div>
+
+
+
+
+
+
+
+
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &#169;2024, Jud Dagnall.
+      
+      |
+      Powered by <a href="https://www.sphinx-doc.org/">Sphinx 8.0.2</a>
+      &amp; <a href="https://alabaster.readthedocs.io">Alabaster 1.0.0</a>
+      
+      |
+      <a href="_sources/batch-and-parallel-execution.md.txt"
+          rel="nofollow">Page source</a>
+    </div>
+
+    
+
+    
+  </body>
+</html>
