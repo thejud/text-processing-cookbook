@@ -1,0 +1,337 @@
+<!DOCTYPE html>
+
+<html lang="en" data-content_root="./">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <title>Filter and Select &#8212; The Text Processing Cookbook 0.1 documentation</title>
+    <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=d1102ebc" />
+    <link rel="stylesheet" type="text/css" href="_static/basic.css?v=c058f7c8" />
+    <link rel="stylesheet" type="text/css" href="_static/alabaster.css?v=27fed22d" />
+    <script src="_static/documentation_options.js?v=2709fde1"></script>
+    <script src="_static/doctools.js?v=9a2dae69"></script>
+    <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Extraction" href="extraction.html" />
+    <link rel="prev" title="An Introduction" href="introduction.html" />
+   
+  <link rel="stylesheet" href="_static/custom.css" type="text/css" />
+  
+
+  
+  
+
+  </head><body>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          
+
+          <div class="body" role="main">
+            
+  <section id="filter-and-select">
+<h1>Filter and Select<a class="headerlink" href="#filter-and-select" title="Link to this heading">¶</a></h1>
+<p>grep is the linux go-to search tool, supporting fast searching using patterns
+and regular expressions.</p>
+<p>I’ll cover some other options here, and assume a basic understanding of grep
+and regular expressions going forward.</p>
+<section id="ag-the-silver-searcher">
+<h2>ag - the silver searcher<a class="headerlink" href="#ag-the-silver-searcher" title="Link to this heading">¶</a></h2>
+<p><a class="reference external" href="https://github.com/ggreer/the_silver_searcher">ag - AKA the silver searcher</a> is
+a fast, flexible alternative to grep forcused on powerful searches with
+perl-compatible regular expressions and common default options like recursive
+search, avoiding .git files, and a few other nice features.</p>
+<p><code class="docutils literal notranslate"><span class="pre">brew</span> <span class="pre">install</span> <span class="pre">the_silver_searcher</span></code> or <code class="docutils literal notranslate"><span class="pre">apt-get</span> <span class="pre">install</span> <span class="pre">silversearcher-ag</span></code></p>
+</section>
+<section id="searching-via-perl">
+<h2>searching via perl<a class="headerlink" href="#searching-via-perl" title="Link to this heading">¶</a></h2>
+<p>perl also has built-in regular expressions, and a few other things that make it
+worthwhile. It is installed on most systems by default. Whatever tool you end
+up using, it’s useful to learn enough of the feature set that you at least know
+what is possible, and when a task is likely to be accomplished quickly (e.g.
+the top result on stack overflow)</p>
+<p>See <span class="xref myst">General transformation with perl -pE and -nE</span>
+for using perl as a general purpose filter.</p>
+<p>grep (or ag) is great when you want to select lines based on a pattern.
+However, sometimes it is useful to select ranges of lines based on their position or by a
+delimiter instead.</p>
+<section id="select-first-and-last-lines">
+<h3>select first and last lines<a class="headerlink" href="#select-first-and-last-lines" title="Link to this heading">¶</a></h3>
+<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>seq 10 | perl -nE&#39;print if $. == 1 or eof&#39;
+ 1
+ 10
+</pre></div>
+</div>
+<p>This example demonstrates some quirky perl features that are quite useful:</p>
+<p>-n loops through the entire input, line by line, without printing anything.</p>
+<p>-E evaluates the given expression for each line, and <code class="docutils literal notranslate"><span class="pre">-E</span></code> (instead of the older <code class="docutils literal notranslate"><span class="pre">-e</span></code>) enables
+modern perl features like <code class="docutils literal notranslate"><span class="pre">say</span></code>.</p>
+<p>The print function will print the current line by default.</p>
+<p><code class="docutils literal notranslate"><span class="pre">eof</span></code> is the end of the file, and is relatively self-explanatory. What is interesting is that you can print
+the last line once eof is detected.</p>
+<p>Found an altenative recently that uses the perl flip-flop operator, described below: https://unix.stackexchange.com/a/139199</p>
+<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>seq 10 |  perl -ne &#39;print if 1..1 or eof&#39;
+ 1
+ 10
+</pre></div>
+</div>
+<p>Similarly, it can be done in awk:</p>
+<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>seq 10 | awk &#39;NR=1; END {print}&#39;
+</pre></div>
+</div>
+<p>awk loops through the input, and prints the line if the expression evaluates as
+true. Like perl, it also provides BEGIN and END block for special operations
+before or after looping through the file. However, in awk, unlike perl, the
+last line can be printed in the end block.</p>
+<p>Note that all of these methods require reading the entire input, e.g. in a
+pipe. If you simply want the first+last line of a file, using head and tail can be
+MUCH faster.</p>
+<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>head -1 myfile
+tail -1 myfile
+</pre></div>
+</div>
+<p>or if you want to sent both lines into another command, you can use a subshell or code block in bash:</p>
+<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>seq 10 &gt; first_ten
+{ head -1 first_ten; tail -1 first_ten; } | sort -nr
+  10
+  1
+</pre></div>
+</div>
+</section>
+<section id="range-selection-with-perl-s-flip-flop-operator">
+<h3>range selection with perl’s flip-flop (..) operator<a class="headerlink" href="#range-selection-with-perl-s-flip-flop-operator" title="Link to this heading">¶</a></h3>
+<p>Perl has an interesting operator called the range or flip-flop operator that can be used to select ranges of things.</p>
+<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>echo &quot;a b c d e f g&quot; | tr &#39; &#39; &quot;\n&quot; | tee letters
+ a
+ b
+ c
+ d
+ e
+ f
+ g
+</pre></div>
+</div>
+<p>Now, let’s select everything between the line starting with c, and the line starting with e:</p>
+<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>perl -nE&#39;print if /^c/../^e/&#39; letters
+ c
+ d
+ e
+</pre></div>
+</div>
+<p>Here we’re using perl’s bare <code class="docutils literal notranslate"><span class="pre">print</span></code> call to print the entire line based on a
+conditional expression. Once whatever is on the left side of the <code class="docutils literal notranslate"><span class="pre">..</span></code> is
+matched, the entire expression becomes true (and the line is printed). The
+expression becomes false AFTER the right side is matched. Often, regexes are
+used on each side, e.g. <code class="docutils literal notranslate"><span class="pre">print</span> <span class="pre">if</span> <span class="pre">/^START/../^END/</span></code> to print all lines between
+START and END. There are a few tips and tricks, described in very gory detail
+in the perl docs: https://perldoc.perl.org/perlop.html#Range-Operators</p>
+<p>If integers are provided for one or both conditions, it is matched against the
+ordinal line number (AKA $.)</p>
+<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>perl -nE&#39;print if 3..5&#39; letters
+ c
+ d
+ e
+</pre></div>
+</div>
+<p>And, combining both a line number and a pattern, we get:</p>
+<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>perl -nE&#39;print if /^c/..5&#39; letters
+ c
+ d
+ e
+</pre></div>
+</div>
+<p>And finally, you can continue to the end of the file by using eof (note that it is inclusive):</p>
+<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>perl -nE&#39;print if /^e/..eof&#39; letters
+ e
+ f
+ g
+</pre></div>
+</div>
+<p>Note that the flip flop operator can turn on and off repeatedly, which you can
+use to extract blocks of text separated by a delimiter, or other things:</p>
+<p>Here’s an example of some data that is delimited by ‘START’ and ‘END’</p>
+<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>cat &gt; delims.txt &lt;&lt;EOF
+START
+1
+2
+END
+4
+5
+6
+START
+7
+END
+8
+9
+START
+10
+11
+12
+END
+13
+14
+15
+EOF
+
+cat delims.txt | perl -nE&#39;print if /START/../END/&#39;
+ START
+ 1
+ 2
+ END
+ START
+ 7
+ END
+ START
+ 10
+ 11
+ 12
+ END
+</pre></div>
+</div>
+</section>
+<section id="going-deeper-extracting-nested-fields-with-the-perl-flip-flop-operator">
+<h3>Going deeper - Extracting nested fields with the perl flip-flop operator<a class="headerlink" href="#going-deeper-extracting-nested-fields-with-the-perl-flip-flop-operator" title="Link to this heading">¶</a></h3>
+<p>My friend Robert Stone pointed out that the flip-flop operators can be nested,
+and you can use this technique to find nested delimiters. Note that for this to
+work, you need to have separate start/end delimters for each section.</p>
+<p>You can use <code class="docutils literal notranslate"><span class="pre">/start1/../end1/</span> <span class="pre">and</span> <span class="pre">/start_inner/../end_inner/</span></code> to find start2 within
+start1 blocks.</p>
+<p>Note that if this gets much more complicated, you will likely be better off using a dedicated parser, but you can go as deep
+as you want to!</p>
+<p>In this case, we’ll parse some simple XML-like structure.</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">cat</span> <span class="o">&gt;</span> <span class="n">outer_inner</span><span class="o">.</span><span class="n">text</span> <span class="o">&lt;&lt;</span><span class="n">EOF</span>
+ <span class="mi">00</span>
+ <span class="o">&lt;</span><span class="n">OUTER</span><span class="o">&gt;</span>
+	<span class="mi">01</span>
+   <span class="o">&lt;</span><span class="n">INNER</span><span class="o">&gt;</span>
+     <span class="mi">1</span>
+     <span class="mi">2</span>
+   <span class="o">&lt;/</span><span class="n">INNER</span><span class="o">&gt;</span>
+     <span class="mi">30</span>
+     <span class="mi">40</span>
+ <span class="o">&lt;/</span><span class="n">OUTER</span><span class="o">&gt;</span>
+ <span class="mi">50</span>
+ <span class="mi">60</span>
+ <span class="mi">70</span>
+ <span class="o">&lt;</span><span class="n">OUTER</span><span class="o">&gt;</span>
+   <span class="mi">80</span> 
+   <span class="o">&lt;</span><span class="n">INNER</span><span class="o">&gt;</span>
+   <span class="mi">4</span>
+   <span class="mi">5</span>
+   <span class="o">&lt;/</span><span class="n">INNER</span><span class="o">&gt;</span>
+   <span class="mi">90</span>
+ <span class="o">&lt;/</span><span class="n">OUTER</span><span class="o">&gt;</span>
+ <span class="mi">100</span>
+ <span class="n">EOF</span>
+</pre></div>
+</div>
+<p>And we’ll extract the inner parts like this:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">perl</span> <span class="o">-</span><span class="n">nE</span><span class="s1">&#39;print if /&lt;OUTER/../&lt;\/OUTER/ and /&lt;INNER/../&lt;\/INNER/&#39;</span> <span class="n">outer_inner</span><span class="o">.</span><span class="n">txt</span>
+ <span class="o">&lt;</span><span class="n">INNER</span><span class="o">&gt;</span>
+  <span class="mi">1</span>
+  <span class="mi">2</span>
+ <span class="o">&lt;/</span><span class="n">INNER</span><span class="o">&gt;</span>
+ <span class="o">&lt;</span><span class="n">INNER</span><span class="o">&gt;</span>
+ <span class="mi">4</span>
+ <span class="mi">5</span>
+ <span class="o">&lt;/</span><span class="n">INNER</span><span class="o">&gt;</span>
+</pre></div>
+</div>
+<p>Naturally, if you don’t want the tags, you could either filter them out, or filter in: keep only the lines with digits.</p>
+</section>
+</section>
+</section>
+
+
+          </div>
+          
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="Main">
+        <div class="sphinxsidebarwrapper">
+            <p class="logo"><a href="index.html">
+              <img class="logo" src="_static/80s_keycaps.png" alt="Logo of The Text Processing Cookbook"/>
+            </a></p>
+<h1 class="logo"><a href="index.html">The Text Processing Cookbook</a></h1>
+
+
+
+
+
+
+
+
+
+<search id="searchbox" style="display: none" role="search">
+    <div class="searchformwrapper">
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" placeholder="Search"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</search>
+<script>document.getElementById('searchbox').style.display = "block"</script><h3>Navigation</h3>
+<p class="caption" role="heading"><span class="caption-text">Contents</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="introduction.html">An Introduction</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Filter and Select</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#ag-the-silver-searcher">ag - the silver searcher</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#searching-via-perl">searching via perl</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="extraction.html">Extraction</a></li>
+<li class="toctree-l1"><a class="reference internal" href="transformation.html">Transformation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="grouping-data.html">Grouping Data</a></li>
+<li class="toctree-l1"><a class="reference internal" href="frequency-counts-and-distributions.html">Frequency Counts and Distributions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="specialized-tools-for-aggregation-summary-analysis-and-reporting.html">Specialized Tools for Aggregation, Summary, Analysis and Reporting</a></li>
+<li class="toctree-l1"><a class="reference internal" href="csv-tsv-json.html">CSV and TSV</a></li>
+<li class="toctree-l1"><a class="reference internal" href="csv-tsv-json.html#json">json</a></li>
+<li class="toctree-l1"><a class="reference internal" href="sorting.html">Sorting</a></li>
+<li class="toctree-l1"><a class="reference internal" href="generating-data.html">Generating Data</a></li>
+<li class="toctree-l1"><a class="reference internal" href="batch-and-parallel-execution.html">Batch and parallel execution with xargs and parallel</a></li>
+<li class="toctree-l1"><a class="reference internal" href="visualization.html">Visualization</a></li>
+<li class="toctree-l1"><a class="reference internal" href="visualization.html#misc">Misc</a></li>
+</ul>
+
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="index.html">Documentation overview</a><ul>
+      <li>Previous: <a href="introduction.html" title="previous chapter">An Introduction</a></li>
+      <li>Next: <a href="extraction.html" title="next chapter">Extraction</a></li>
+  </ul></li>
+</ul>
+</div>
+
+
+
+
+
+
+
+
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &#169;2024, Jud Dagnall.
+      
+      |
+      Powered by <a href="https://www.sphinx-doc.org/">Sphinx 8.0.2</a>
+      &amp; <a href="https://alabaster.readthedocs.io">Alabaster 1.0.0</a>
+      
+      |
+      <a href="_sources/filter-and-select.md.txt"
+          rel="nofollow">Page source</a>
+    </div>
+
+    
+
+    
+  </body>
+</html>

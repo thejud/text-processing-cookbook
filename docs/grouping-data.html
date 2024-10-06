@@ -1,0 +1,219 @@
+<!DOCTYPE html>
+
+<html lang="en" data-content_root="./">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <title>Grouping Data &#8212; The Text Processing Cookbook 0.1 documentation</title>
+    <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=d1102ebc" />
+    <link rel="stylesheet" type="text/css" href="_static/basic.css?v=c058f7c8" />
+    <link rel="stylesheet" type="text/css" href="_static/alabaster.css?v=27fed22d" />
+    <script src="_static/documentation_options.js?v=2709fde1"></script>
+    <script src="_static/doctools.js?v=9a2dae69"></script>
+    <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Frequency Counts and Distributions" href="frequency-counts-and-distributions.html" />
+    <link rel="prev" title="Transformation" href="transformation.html" />
+   
+  <link rel="stylesheet" href="_static/custom.css" type="text/css" />
+  
+
+  
+  
+
+  </head><body>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          
+
+          <div class="body" role="main">
+            
+  <section id="grouping-data">
+<h1>Grouping Data<a class="headerlink" href="#grouping-data" title="Link to this heading">¶</a></h1>
+<section id="find-distinct-items-removing-duplicates">
+<h2>Find distinct items, removing duplicates<a class="headerlink" href="#find-distinct-items-removing-duplicates" title="Link to this heading">¶</a></h2>
+<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>cat data | sort -u
+
+cat data | sort | uniq
+</pre></div>
+</div>
+</section>
+<section id="find-unique-items">
+<h2>Find unique items<a class="headerlink" href="#find-unique-items" title="Link to this heading">¶</a></h2>
+<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>cat data | sort | uniq -u
+</pre></div>
+</div>
+</section>
+<section id="find-duplicate-items">
+<h2>Find duplicate items<a class="headerlink" href="#find-duplicate-items" title="Link to this heading">¶</a></h2>
+<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>cat data | sort | uniq -d
+</pre></div>
+</div>
+</section>
+<section id="find-lines-that-are-in-one-file-but-not-in-another">
+<h2>Find lines that are in one file, but not in another<a class="headerlink" href="#find-lines-that-are-in-one-file-but-not-in-another" title="Link to this heading">¶</a></h2>
+<p>Sometimes I have a list of all items, and then a list of items that I want to
+remove, and so I need to exclude (subtract) the rejects and work on the
+rest.</p>
+<p>If both files are sorted (or can be sorted), then you can use either the <code class="docutils literal notranslate"><span class="pre">comm</span></code> utility, or <code class="docutils literal notranslate"><span class="pre">diff</span></code>.</p>
+<p>comm takes two <strong>sorted</strong> files, and reports lines that are in a, b or both.</p>
+<p>So, to show items that are in <code class="docutils literal notranslate"><span class="pre">all</span></code>, but not in <code class="docutils literal notranslate"><span class="pre">reject</span></code>, tell <code class="docutils literal notranslate"><span class="pre">comm</span></code> to suppress
+the lines in the second file (reject, <code class="docutils literal notranslate"><span class="pre">-2</span></code>), and in both files (<code class="docutils literal notranslate"><span class="pre">-3</span></code>):</p>
+<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>comm -2 -3 all reject
+</pre></div>
+</div>
+<p>See also: <code class="docutils literal notranslate"><span class="pre">join</span></code>, which gives more control on a column by column basis.</p>
+<p>You can also grep the output of diff, which is most useful if you want to get a
+bit of context around missing lines. Lines removed from the first file are
+prefixed with a ‘ &lt;’, or ‘-’ in unified (-u) mode. You’ll need to do a little
+post-processing on the output to remove the diff characters, so <code class="docutils literal notranslate"><span class="pre">comm</span></code> is often
+an easier choice.</p>
+<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>diff -u all keep | egrep &#39;^-&#39; 
+</pre></div>
+</div>
+<p>If it’s not practical to sort the files, then you may need to do a little
+actual coding to put the lines from one file into a dictionary or set, and
+remove the lines from the other.</p>
+</section>
+<section id="split-data-into-files-based-on-a-field">
+<h2>Split data into files based on a field<a class="headerlink" href="#split-data-into-files-based-on-a-field" title="Link to this heading">¶</a></h2>
+<p>awk has a really simple way to split data into separate files based on a field.</p>
+<p><code class="docutils literal notranslate"><span class="pre">{print</span> <span class="pre">&gt;</span> <span class="pre">$1}</span></code>, which prints the line into a file named in the first column.</p>
+<p>Here’s a more concrete example, using this techinque in conjuction with a program called <code class="docutils literal notranslate"><span class="pre">average</span></code> that, not surprisingly, computes the average of its inputs. The input is a request rate, and the date portion of a timestamp extracted from a log file:</p>
+<p>The input date:</p>
+<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>10:50:41 $ head -5 /tmp/a
+ 2017-11-22	17918
+ 2017-11-22	22122
+ 2017-11-22	23859
+ 2017-11-22	24926
+ 2017-11-22	25590
+</pre></div>
+</div>
+<p>Put each rate into a file named for the day:</p>
+<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>10:51:12 $ awk &#39;{ print $2&gt;$1}&#39; /tmp/a
+</pre></div>
+</div>
+<p>Verify the files:</p>
+<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>10:51:30 $ ls
+ 2017-11-22  2017-11-23  2017-11-24  2017-11-25  2017-11-26  2017-11-27
+</pre></div>
+</div>
+<p>To add a suffix or prefix, use this awk syntax:</p>
+<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>10:51:12 $ awk &#39;{ print $2&gt;($1 &quot;.txt&quot; )}&#39; /tmp/a
+</pre></div>
+</div>
+<p>Finally, compute an average based on a special purpose program (or your own
+one-liner)</p>
+<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>10:51:39 $ for f in 2017*;do  echo -n &quot;$f &quot;; average $f; done;
+ 2017-11-22 28623.5339943343
+ 2017-11-23 32164.1470966969
+ 2017-11-24 41606.0775438271
+ 2017-11-25 44660.3379886831
+ 2017-11-26 43758.5492501466
+ 2017-11-27 43080.1879794521
+</pre></div>
+</div>
+<p>Naturally, there are other ways to do this specific computation,
+e.g. <code class="docutils literal notranslate"><span class="pre">cat</span> <span class="pre">/tmp/a</span> <span class="pre">|</span> <span class="pre">datamash</span> <span class="pre">-W</span> <span class="pre">--group</span> <span class="pre">1</span> <span class="pre">mean</span> <span class="pre">2</span></code>,
+but sometimes it’s useful to split the files for later processing.</p>
+<p>See http://www.theunixschool.com/2012/06/awk-10-examples-to-split-file-into.html for some more examples.</p>
+</section>
+</section>
+
+
+          </div>
+          
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="Main">
+        <div class="sphinxsidebarwrapper">
+            <p class="logo"><a href="index.html">
+              <img class="logo" src="_static/80s_keycaps.png" alt="Logo of The Text Processing Cookbook"/>
+            </a></p>
+<h1 class="logo"><a href="index.html">The Text Processing Cookbook</a></h1>
+
+
+
+
+
+
+
+
+
+<search id="searchbox" style="display: none" role="search">
+    <div class="searchformwrapper">
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" placeholder="Search"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</search>
+<script>document.getElementById('searchbox').style.display = "block"</script><h3>Navigation</h3>
+<p class="caption" role="heading"><span class="caption-text">Contents</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="introduction.html">An Introduction</a></li>
+<li class="toctree-l1"><a class="reference internal" href="filter-and-select.html">Filter and Select</a></li>
+<li class="toctree-l1"><a class="reference internal" href="extraction.html">Extraction</a></li>
+<li class="toctree-l1"><a class="reference internal" href="transformation.html">Transformation</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Grouping Data</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#find-distinct-items-removing-duplicates">Find distinct items, removing duplicates</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#find-unique-items">Find unique items</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#find-duplicate-items">Find duplicate items</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#find-lines-that-are-in-one-file-but-not-in-another">Find lines that are in one file, but not in another</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#split-data-into-files-based-on-a-field">Split data into files based on a field</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="frequency-counts-and-distributions.html">Frequency Counts and Distributions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="specialized-tools-for-aggregation-summary-analysis-and-reporting.html">Specialized Tools for Aggregation, Summary, Analysis and Reporting</a></li>
+<li class="toctree-l1"><a class="reference internal" href="csv-tsv-json.html">CSV and TSV</a></li>
+<li class="toctree-l1"><a class="reference internal" href="csv-tsv-json.html#json">json</a></li>
+<li class="toctree-l1"><a class="reference internal" href="sorting.html">Sorting</a></li>
+<li class="toctree-l1"><a class="reference internal" href="generating-data.html">Generating Data</a></li>
+<li class="toctree-l1"><a class="reference internal" href="batch-and-parallel-execution.html">Batch and parallel execution with xargs and parallel</a></li>
+<li class="toctree-l1"><a class="reference internal" href="visualization.html">Visualization</a></li>
+<li class="toctree-l1"><a class="reference internal" href="visualization.html#misc">Misc</a></li>
+</ul>
+
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="index.html">Documentation overview</a><ul>
+      <li>Previous: <a href="transformation.html" title="previous chapter">Transformation</a></li>
+      <li>Next: <a href="frequency-counts-and-distributions.html" title="next chapter">Frequency Counts and Distributions</a></li>
+  </ul></li>
+</ul>
+</div>
+
+
+
+
+
+
+
+
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &#169;2024, Jud Dagnall.
+      
+      |
+      Powered by <a href="https://www.sphinx-doc.org/">Sphinx 8.0.2</a>
+      &amp; <a href="https://alabaster.readthedocs.io">Alabaster 1.0.0</a>
+      
+      |
+      <a href="_sources/grouping-data.md.txt"
+          rel="nofollow">Page source</a>
+    </div>
+
+    
+
+    
+  </body>
+</html>

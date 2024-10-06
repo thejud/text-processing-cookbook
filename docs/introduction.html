@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+
+<html lang="en" data-content_root="./">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <title>An Introduction &#8212; The Text Processing Cookbook 0.1 documentation</title>
+    <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=d1102ebc" />
+    <link rel="stylesheet" type="text/css" href="_static/basic.css?v=c058f7c8" />
+    <link rel="stylesheet" type="text/css" href="_static/alabaster.css?v=27fed22d" />
+    <script src="_static/documentation_options.js?v=2709fde1"></script>
+    <script src="_static/doctools.js?v=9a2dae69"></script>
+    <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Filter and Select" href="filter-and-select.html" />
+    <link rel="prev" title="The Text Processing Cookbook" href="index.html" />
+   
+  <link rel="stylesheet" href="_static/custom.css" type="text/css" />
+  
+
+  
+  
+
+  </head><body>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          
+
+          <div class="body" role="main">
+            
+  <section id="an-introduction">
+<h1>An Introduction<a class="headerlink" href="#an-introduction" title="Link to this heading">¶</a></h1>
+<p>In my daily work, I often have a need to quickly analyze textual data from
+logfiles, APIs and console commands. I need to answer questions like how many
+events occurred, how frequently they occurred, and/or how they relate to other
+events over a period of time.</p>
+<p>Many of my data processing tasks follow this pattern:</p>
+<ul class="simple">
+<li><p>FILTER the input, selecting a set of lines that I want</p></li>
+<li><p>EXTRACT/TRANSFORM the selected lines into a more useful format</p></li>
+<li><p>AGGREGATE the data to summarize</p></li>
+</ul>
+<p>Due to the power and flexibility of linux pipes, I can quickly assemble a set
+of commands that are very effective on small to medium sized datasets (able to
+fit on a single machine). Without doing a lot of programming, I can do
+exploratory analysis, and answer many types of questions quickly.</p>
+<p>For example, sometime I want to print the last field in a series of lines
+that match the pattern “DEBUG”. <code class="docutils literal notranslate"><span class="pre">awk</span></code> is <em>one</em> way to do this:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">grep</span> <span class="s2">&quot;DEBUG&quot;</span> <span class="n">myfile</span> <span class="o">|</span> <span class="n">awk</span> <span class="s1">&#39;{print $NF}&#39;</span>
+</pre></div>
+</div>
+<p>See <a class="reference internal" href="extraction.html#printing-the-last-column-awk-and-perl"><span class="std std-ref">the recipe</span></a></p>
+<p>I try to remember a set of techniques that I can put together on the fly to
+answer questions in under 60 seconds, often much less. More complicated
+questions can be answered via an actual program, or with higher-level tools.</p>
+<p>This document describes a variety of linux tools (standard and/or open source)
+that I have found useful for various parts of the process. They are also tools
+and techniques that I find myself re-discovering periodically, so this document
+is both a reminder to myself about things that have worked for me, and
+potentially a teaching tool for others. Note that there are multiple approaches
+to almost every recipe I’ve listed here.</p>
+<p>Conventions: In code blocks, the command is left justified, while output from
+the command is indented by one space. I find it annoying to remove the “$ “
+prefix from commands when copying and pasting from a page.</p>
+<p>I also use the <code class="docutils literal notranslate"><span class="pre">cat</span> <span class="pre">foo</span> <span class="pre">|</span> <span class="pre">bar</span></code> form in many places rather than <code class="docutils literal notranslate"><span class="pre">bar</span> <span class="pre">&lt;</span> <span class="pre">foo</span></code>
+because I’ve fat-fingered ‘&gt;’ instead of ‘&lt;’ one too many times, overwriting my
+source file. Additionally, I also use most of these scripts as part of a larger
+pipeline, so there’s often another few steps to generate the input instead of a
+simple <code class="docutils literal notranslate"><span class="pre">cat</span></code> command. Here’s an example of how a command and its output will be
+formatted.</p>
+<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>seq 10 | head -3
+ 1
+ 2
+ 3
+</pre></div>
+</div>
+<p>Finally, unless otherwise noted, the commands should handle more than one line
+of input even if I only provide one line of input, e.g.
+<code class="docutils literal notranslate"><span class="pre">echo</span> <span class="pre">foo,bar,baz</span> <span class="pre">|</span> <span class="pre">csvlook</span> <span class="pre">-H</span></code>.</p>
+<section id="other-resources">
+<h2>Other Resources<a class="headerlink" href="#other-resources" title="Link to this heading">¶</a></h2>
+<p>There’s a great list of text processing utilities here:</p>
+<ul class="simple">
+<li><p><a class="reference external" href="https://github.com/dbohdan/structured-text-tools">structured text tools</a></p></li>
+</ul>
+<p>Jeroen Janssens wrote a good book about this topic</p>
+<ul class="simple">
+<li><p><a class="reference external" href="https://www.datascienceatthecommandline.com/">data science at the command line book</a></p></li>
+</ul>
+</section>
+</section>
+
+
+          </div>
+          
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="Main">
+        <div class="sphinxsidebarwrapper">
+            <p class="logo"><a href="index.html">
+              <img class="logo" src="_static/80s_keycaps.png" alt="Logo of The Text Processing Cookbook"/>
+            </a></p>
+<h1 class="logo"><a href="index.html">The Text Processing Cookbook</a></h1>
+
+
+
+
+
+
+
+
+
+<search id="searchbox" style="display: none" role="search">
+    <div class="searchformwrapper">
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" placeholder="Search"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</search>
+<script>document.getElementById('searchbox').style.display = "block"</script><h3>Navigation</h3>
+<p class="caption" role="heading"><span class="caption-text">Contents</span></p>
+<ul class="current">
+<li class="toctree-l1 current"><a class="current reference internal" href="#">An Introduction</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#other-resources">Other Resources</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="filter-and-select.html">Filter and Select</a></li>
+<li class="toctree-l1"><a class="reference internal" href="extraction.html">Extraction</a></li>
+<li class="toctree-l1"><a class="reference internal" href="transformation.html">Transformation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="grouping-data.html">Grouping Data</a></li>
+<li class="toctree-l1"><a class="reference internal" href="frequency-counts-and-distributions.html">Frequency Counts and Distributions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="specialized-tools-for-aggregation-summary-analysis-and-reporting.html">Specialized Tools for Aggregation, Summary, Analysis and Reporting</a></li>
+<li class="toctree-l1"><a class="reference internal" href="csv-tsv-json.html">CSV and TSV</a></li>
+<li class="toctree-l1"><a class="reference internal" href="csv-tsv-json.html#json">json</a></li>
+<li class="toctree-l1"><a class="reference internal" href="sorting.html">Sorting</a></li>
+<li class="toctree-l1"><a class="reference internal" href="generating-data.html">Generating Data</a></li>
+<li class="toctree-l1"><a class="reference internal" href="batch-and-parallel-execution.html">Batch and parallel execution with xargs and parallel</a></li>
+<li class="toctree-l1"><a class="reference internal" href="visualization.html">Visualization</a></li>
+<li class="toctree-l1"><a class="reference internal" href="visualization.html#misc">Misc</a></li>
+</ul>
+
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="index.html">Documentation overview</a><ul>
+      <li>Previous: <a href="index.html" title="previous chapter">The Text Processing Cookbook</a></li>
+      <li>Next: <a href="filter-and-select.html" title="next chapter">Filter and Select</a></li>
+  </ul></li>
+</ul>
+</div>
+
+
+
+
+
+
+
+
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &#169;2024, Jud Dagnall.
+      
+      |
+      Powered by <a href="https://www.sphinx-doc.org/">Sphinx 8.0.2</a>
+      &amp; <a href="https://alabaster.readthedocs.io">Alabaster 1.0.0</a>
+      
+      |
+      <a href="_sources/introduction.md.txt"
+          rel="nofollow">Page source</a>
+    </div>
+
+    
+
+    
+  </body>
+</html>
