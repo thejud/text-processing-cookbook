@@ -36,7 +36,7 @@ source_suffix = {
 html_theme = 'alabaster'
 html_static_path = ['_static']
 html_theme_options = {
-        'show_relbars': False,
+        'show_relbars': True,
 }
 html_logo = '80s_keycaps.png'
 smart_quotes = False
