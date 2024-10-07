@@ -47,26 +47,26 @@
             
   <section id="solutions-putting-it-all-together">
 <h1>Solutions: Putting it all together<a class="headerlink" href="#solutions-putting-it-all-together" title="Link to this heading">¶</a></h1>
-<p>Here are a few more complicated examples that put the various
-pieces together.</p>
+<p>The following examples combine multiple recipes and techniques to solve real-world problems
+I have encountered.</p>
 <p>Note that, as always, there are <strong>many</strong> approaches to each of these, and
 I often try to work through each one quickly and iteratively with
 small, simple transformations.</p>
 <section id="find-available-data-by-user-event-class-and-date">
 <h2>Find available data by user, event class and date<a class="headerlink" href="#find-available-data-by-user-event-class-and-date" title="Link to this heading">¶</a></h2>
 <p>This is a more detailled exploration of the example I showed in the <a class="reference internal" href="introduction.html"><span class="std std-doc">Introduction</span></a>.</p>
-<p>On a project, a coworker asked what dates were available to analyze
-in a machine learning project. The data had been collected into S3, grouped
-by event class, user, and date. As I knew where the data was stored in S3,
-I was able to quickly list the files using an <code class="docutils literal notranslate"><span class="pre">s3</span> <span class="pre">ls</span> <span class="pre">--recursive</span></code> command
-and store that in a file for quick summarization.</p>
+<p>Recently, a coworker asked what dates had data available to analyze for a
+machine learning project. The data had been collected into S3, grouped into
+folders by event class, user, and date. As I knew where the data was stored in
+S3, I listed the files using an <code class="docutils literal notranslate"><span class="pre">s3</span> <span class="pre">ls</span> <span class="pre">--recursive</span></code> command
+and stored that list a file for quick summarization.</p>
 <p>The S3 output was a list of several hundred files approximately like below.
-Each line has a creation data, a size, and then the file path that encodes:</p>
+Each line had a file creation data, a size, and then the file path that encodes:</p>
 <ul class="simple">
 <li><p>an event class</p></li>
 <li><p>a user id</p></li>
 <li><p>a date</p></li>
-<li><p>the actual filename</p></li>
+<li><p>the actual filename for a data segment</p></li>
 </ul>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="mi">2024</span><span class="o">-</span><span class="mi">09</span><span class="o">-</span><span class="mi">22</span> <span class="mi">139769207</span> <span class="n">data</span><span class="o">/</span><span class="n">class</span><span class="o">=</span><span class="mi">3002</span><span class="o">/</span><span class="n">user</span><span class="o">=</span><span class="n">aaa</span><span class="o">/</span><span class="n">date</span><span class="o">=</span><span class="mi">2024</span><span class="o">-</span><span class="mi">09</span><span class="o">-</span><span class="mi">21</span><span class="o">/</span><span class="n">part</span><span class="o">-</span><span class="mi">00005</span>
 <span class="mi">2024</span><span class="o">-</span><span class="mi">10</span><span class="o">-</span><span class="mi">04</span>   <span class="mi">8235665</span> <span class="n">data</span><span class="o">/</span><span class="n">class</span><span class="o">=</span><span class="mi">1007</span><span class="o">/</span><span class="n">user</span><span class="o">=</span><span class="n">aaa</span><span class="o">/</span><span class="n">date</span><span class="o">=</span><span class="mi">2024</span><span class="o">-</span><span class="mi">10</span><span class="o">-</span><span class="mi">03</span><span class="o">/</span><span class="n">part</span><span class="o">-</span><span class="mi">00009</span>
@@ -80,9 +80,11 @@ Each line has a creation data, a size, and then the file path that encodes:</p>
 <span class="mi">2024</span><span class="o">-</span><span class="mi">09</span><span class="o">-</span><span class="mi">03</span> <span class="mi">146174053</span> <span class="n">data</span><span class="o">/</span><span class="n">class</span><span class="o">=</span><span class="mi">3002</span><span class="o">/</span><span class="n">user</span><span class="o">=</span><span class="n">aaa</span><span class="o">/</span><span class="n">date</span><span class="o">=</span><span class="mi">2024</span><span class="o">-</span><span class="mi">09</span><span class="o">-</span><span class="mi">02</span><span class="o">/</span><span class="n">part</span><span class="o">-</span><span class="mi">00001</span>
 </pre></div>
 </div>
-<p>I wanted to see the first and last dates available, and have a rough idea if
-there were any big gaps by counting the number of dates between the first and last.</p>
-<p>Here’s the abbreviated output, with the user, event class, first and last date and count of files.</p>
+<p>I wanted to see the first and last dates available for each event code and
+user, and have a rough idea if there were any big gaps by counting the number
+of dates between the first and last.</p>
+<p>Here’s the first few rows of  output, with the user, event class, first and
+last date, and count of files.</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">user</span><span class="o">=</span><span class="n">aaa</span>  <span class="n">class</span><span class="o">=</span><span class="mi">1007</span>    <span class="n">date</span><span class="o">=</span><span class="mi">2024</span><span class="o">-</span><span class="mi">09</span><span class="o">-</span><span class="mi">05</span>  <span class="n">date</span><span class="o">=</span><span class="mi">2024</span><span class="o">-</span><span class="mi">10</span><span class="o">-</span><span class="mi">05</span>  <span class="mi">31</span>
 <span class="n">user</span><span class="o">=</span><span class="n">aaa</span>  <span class="n">class</span><span class="o">=</span><span class="mi">3001</span>    <span class="n">date</span><span class="o">=</span><span class="mi">2024</span><span class="o">-</span><span class="mi">08</span><span class="o">-</span><span class="mi">25</span>  <span class="n">date</span><span class="o">=</span><span class="mi">2024</span><span class="o">-</span><span class="mi">10</span><span class="o">-</span><span class="mi">05</span>  <span class="mi">42</span>
 <span class="n">user</span><span class="o">=</span><span class="n">aaa</span>  <span class="n">class</span><span class="o">=</span><span class="mi">3002</span>    <span class="n">date</span><span class="o">=</span><span class="mi">2024</span><span class="o">-</span><span class="mi">08</span><span class="o">-</span><span class="mi">25</span>  <span class="n">date</span><span class="o">=</span><span class="mi">2024</span><span class="o">-</span><span class="mi">10</span><span class="o">-</span><span class="mi">05</span>  <span class="mi">42</span>
@@ -129,9 +131,11 @@ above that used the entire dataset.</p>
 </div>
 <p>See <a class="reference internal" href="extraction.html#printing-the-last-column-awk-and-perl"><span class="std std-ref">Printing the last column, awk and perl</span></a></p>
 <ol class="arabic simple" start="2">
-<li><p>Next, I filter for lines that contain only the ‘user’. It turned out that there were other files, metadata files etc…
-that were also present in the s3 output, and so I wanted to filter those out. They were in other directories, not per-user, so
-looking for the <code class="docutils literal notranslate"><span class="pre">user=</span></code> string eliminated them. This is an example of “selecting in”.</p></li>
+<li><p>Next, I filter for lines that contain only the string ‘user=’. It turned out
+that there were other files, metadata files etc… that were also present in
+the s3 output, but they were not specific to a user and so I wanted to
+filter those out. Looking for the <code class="docutils literal notranslate"><span class="pre">user=</span></code> string eliminated them. This is an
+example of “selecting in”.</p></li>
 </ol>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="o">|</span> <span class="n">grep</span> <span class="n">user</span><span class="o">=</span>
 </pre></div>
@@ -180,7 +184,7 @@ regular expression because in the actual data I had a few more path components t
 <span class="n">class</span><span class="o">=</span><span class="mi">3002</span><span class="o">/</span><span class="n">user</span><span class="o">=</span><span class="n">aaa</span><span class="o">/</span><span class="n">date</span><span class="o">=</span><span class="mi">2024</span><span class="o">-</span><span class="mi">09</span><span class="o">-</span><span class="mi">21</span><span class="o">/</span>
 </pre></div>
 </div>
-<p>See <a class="reference internal" href="transformation.html"><span class="std std-doc">Transformations</span></a></p>
+<p>This is an example of “selecting out”. See <a class="reference internal" href="transformation.html"><span class="std std-doc">Transformations</span></a></p>
 <ol class="arabic simple" start="5">
 <li><p>split up the directory components by tabs</p></li>
 </ol>
@@ -228,9 +232,10 @@ sort the data for the next step.</p>
 <ol class="arabic simple" start="7">
 <li><p>Group by user, and event class, then show the days and counts</p></li>
 </ol>
-<p>Datamash makes it easy to do some quick grouping and aggregations on delimited data, and provides a few useful
+<p><a class="reference external" href="https://www.gnu.org/software/datamash/">Gnu Datamash</a> makes it easy to do some quick grouping and aggregations on delimited data, and provides a few useful
 text transformations like count, first, last and collapse.</p>
-<p>So, because I actually am interested in which users have what data is available, I’m going to change the grouping order</p>
+<p>So, because I actually am interested in which users have what data is available, I’m going to change the grouping order. I’ll group by the first two columns, and then
+do some “aggregation” operations on the third: first, last, and count all work on the grouped elements.</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="o">|</span> <span class="n">datamash</span> <span class="o">--</span><span class="n">group</span> <span class="mi">2</span><span class="p">,</span><span class="mi">1</span> <span class="n">first</span> <span class="mi">3</span> <span class="n">last</span> <span class="mi">3</span> <span class="n">count</span> <span class="mi">3</span>
 </pre></div>
 </div>
@@ -243,6 +248,7 @@ text transformations like count, first, last and collapse.</p>
 <span class="n">user</span><span class="o">=</span><span class="n">aaa</span>	<span class="n">class</span><span class="o">=</span><span class="mi">3002</span>	<span class="n">date</span><span class="o">=</span><span class="mi">2024</span><span class="o">-</span><span class="mi">09</span><span class="o">-</span><span class="mi">02</span>	<span class="n">date</span><span class="o">=</span><span class="mi">2024</span><span class="o">-</span><span class="mi">09</span><span class="o">-</span><span class="mi">21</span>	<span class="mi">2</span>
 </pre></div>
 </div>
+<p>Note that datamash prints out items separated by tabs, so the output doesn’t line up with my default tab settings.</p>
 <p>See <a class="reference internal" href="specialized-data-tools.html#datamash"><span class="std std-ref">datamash</span></a></p>
 <ol class="arabic simple" start="8">
 <li><p>Pretty print the data into nicer columns for easy viewing/copypaste</p></li>

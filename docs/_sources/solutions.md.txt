@@ -1,7 +1,7 @@
 # Solutions: Putting it all together
 
-Here are a few more complicated examples that put the various
-pieces together.
+The following examples combine multiple recipes and techniques to solve real-world problems 
+I have encountered.
 
 Note that, as always, there are **many** approaches to each of these, and
 I often try to work through each one quickly and iteratively with
@@ -12,19 +12,19 @@ small, simple transformations.
 
 This is a more detailled exploration of the example I showed in the [Introduction](project:introduction.md).
 
-On a project, a coworker asked what dates were available to analyze
-in a machine learning project. The data had been collected into S3, grouped
-by event class, user, and date. As I knew where the data was stored in S3,
-I was able to quickly list the files using an `s3 ls --recursive` command
-and store that in a file for quick summarization.
+Recently, a coworker asked what dates had data available to analyze for a
+machine learning project. The data had been collected into S3, grouped into
+folders by event class, user, and date. As I knew where the data was stored in
+S3, I listed the files using an `s3 ls --recursive` command
+and stored that list a file for quick summarization.
 
 The S3 output was a list of several hundred files approximately like below.
-Each line has a creation data, a size, and then the file path that encodes:
+Each line had a file creation data, a size, and then the file path that encodes:
 
 - an event class
 - a user id
 - a date
-- the actual filename
+- the actual filename for a data segment
 
 ```
 2024-09-22 139769207 data/class=3002/user=aaa/date=2024-09-21/part-00005
@@ -39,10 +39,12 @@ Each line has a creation data, a size, and then the file path that encodes:
 2024-09-03 146174053 data/class=3002/user=aaa/date=2024-09-02/part-00001
 ```
 
-I wanted to see the first and last dates available, and have a rough idea if
-there were any big gaps by counting the number of dates between the first and last.
+I wanted to see the first and last dates available for each event code and
+user, and have a rough idea if there were any big gaps by counting the number
+of dates between the first and last.
 
-Here's the abbreviated output, with the user, event class, first and last date and count of files.
+Here's the first few rows of  output, with the user, event class, first and
+last date, and count of files.
 
 ```
 user=aaa  class=1007    date=2024-09-05  date=2024-10-05  31
@@ -97,9 +99,11 @@ data/class=3002/user=aaa/date=2024-09-21/part-00005
 
 See [Printing the last column, awk and perl](project:extraction.md#printing-the-last-column-awk-and-perl)
 
-2. Next, I filter for lines that contain only the 'user'. It turned out that there were other files, metadata files etc...
-that were also present in the s3 output, and so I wanted to filter those out. They were in other directories, not per-user, so
-looking for the `user=` string eliminated them. This is an example of "selecting in".
+2. Next, I filter for lines that contain only the string 'user='. It turned out
+   that there were other files, metadata files etc... that were also present in
+   the s3 output, but they were not specific to a user and so I wanted to
+   filter those out. Looking for the `user=` string eliminated them. This is an
+   example of "selecting in".
 
 ```
 | grep user=
@@ -158,7 +162,7 @@ class=3002/user=aaa/date=2024-09-02/
 class=3002/user=aaa/date=2024-09-21/
 ```
 
-See [Transformations](project:transformation.md)
+This is an example of "selecting out". See [Transformations](project:transformation.md)
 
 5. split up the directory components by tabs 
 
@@ -187,7 +191,6 @@ Naturally, I could have also used perl for this, but `tr` is shorter to type and
 Also note that steps 3, 4 and 5 could have all been done by a single, more complicated match and replacement, but I was
 working quickly and wanted simple steps I could easily iterate through.
 
-
 See [Create several simple filters rather than one complicated one](project:transformation.md#create-several-simple-filters-rather-than-one-complicated-one)
 
 6. Sort, and keep only one line per day
@@ -214,10 +217,11 @@ sort the data for the next step.
 
 7. Group by user, and event class, then show the days and counts
 
-Datamash makes it easy to do some quick grouping and aggregations on delimited data, and provides a few useful
+[Gnu Datamash](https://www.gnu.org/software/datamash/) makes it easy to do some quick grouping and aggregations on delimited data, and provides a few useful
 text transformations like count, first, last and collapse.
 
-So, because I actually am interested in which users have what data is available, I'm going to change the grouping order
+So, because I actually am interested in which users have what data is available, I'm going to change the grouping order. I'll group by the first two columns, and then
+do some "aggregation" operations on the third: first, last, and count all work on the grouped elements.
 
 ```
 | datamash --group 2,1 first 3 last 3 count 3
@@ -233,6 +237,7 @@ user=aaa	class=3001	date=2024-09-09	date=2024-09-09	1
 user=aaa	class=3002	date=2024-09-02	date=2024-09-21	2
 ```
 
+Note that datamash prints out items separated by tabs, so the output doesn't line up with my default tab settings.
 
 See [datamash](project:specialized-data-tools.md#datamash)
 
@@ -251,7 +256,6 @@ user=bbb  class=103006  date=2024-10-03  date=2024-10-03  1
 user=aaa  class=3001    date=2024-09-09  date=2024-09-09  1
 user=aaa  class=3002    date=2024-09-02  date=2024-09-21  2
 ```
-
 
 9. Finally, sort the data correctly so it shows up as desired.
 
@@ -282,8 +286,4 @@ message to the data ingestion team about the missing days.
 
 At each step in the process, I would typically pipe the output to `head` so I was only getting the top 10 results. That
 was enough for me to check each step before processing onto the next, and allowed me to rapidly iterate through the examples.
-
-
-
-
 
