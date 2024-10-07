@@ -41,7 +41,7 @@ html_theme_options = {
         'github_banner': True,
         'github_button': True,
         'github_user':  'thejud',
-        'github_repo':  'the-text-processing-cookbook',
+        'github_repo':  'text-processing-cookbook',
         'github_type': 'star',
         'github_count': True,
 #        'logo': '../80s_keycaps.png',
