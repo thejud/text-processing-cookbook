@@ -287,3 +287,83 @@ message to the data ingestion team about the missing days.
 At each step in the process, I would typically pipe the output to `head` so I was only getting the top 10 results. That
 was enough for me to check each step before processing onto the next, and allowed me to rapidly iterate through the examples.
 
+## Finding missing dates
+
+In this example, I continue with a dataset similar to the previous one. Now I
+want to identify missing dates. I recently discovered a new approach to this
+that relies on looking for gaps of more than one day between successive dates.
+See the recipe [join: intersect two
+files](project:transformation.md#join-intersect-two-files) for another
+approach.
+
+There is another tool I have been working with recently called miller [mlr](https://miller.readthedocs.io/).
+It combines a variety of capabilities into a single tool with many subcommands. It excels at working
+with "structured" data like TSV, CSV and JSON. It has its own mini programming language/DSL, so it is
+not always easier than a traditional programming language, but it still provides a pipeline concept such that
+the output of one subcommand can be fed into another command. In this case, it is particularly useful for adding
+a computed column to an existing CSV file, something discussed in a previous recipie.
+
+
+
+```
+data/ocsf/user=user1/class=class1007/date=2024-10-06/file-0
+data/ocsf/user=user1/class=class1007/date=2024-10-05/file-0
+data/ocsf/user=user1/class=class1007/date=2024-10-05/file-1
+data/ocsf/user=user1/class=class1007/date=2024-10-02/file-0
+data/ocsf/user=user1/class=class1007/date=2024-10-02/file-1
+data/ocsf/user=user1/class=class1007/date=2024-10-01/file-0
+data/ocsf/user=user1/class=class1007/date=2024-10-01/file-1
+data/ocsf/user=user1/class=class1007/date=2024-09-30/file-0
+data/ocsf/user=user1/class=class1007/date=2024-09-25/file-0
+data/ocsf/user=user1/class=class1007/date=2024-09-24/file-0
+data/ocsf/user=user1/class=class1007/date=2024-09-24/file-1
+data/ocsf/user=user1/class=class1007/date=2024-09-23/file-0
+data/ocsf/user=user1/class=class1007/date=2024-09-23/file-1
+data/ocsf/user=user1/class=class1007/date=2024-09-22/file-0
+data/ocsf/user=user1/class=class3001/date=2024-10-06/file-0
+data/ocsf/user=user1/class=class3001/date=2024-10-03/file-0
+data/ocsf/user=user1/class=class3001/date=2024-10-03/file-1
+data/ocsf/user=user1/class=class3001/date=2024-10-02/file-0
+data/ocsf/user=user1/class=class3001/date=2024-09-30/file-0
+data/ocsf/user=user1/class=class3001/date=2024-09-28/file-0
+```
+
+```
+cat filepaths.txt 
+   | perl -pe's{.*?(user)}{$1}' 
+   | dirnames 
+   | tr / , 
+   | sort -u 
+   | mlr --d2p put '$eday = strptime($date, "%Y-%m-%d")/(24*60*60)' \
+        then step -g user,class -f eday -a delta \
+        then filter '$eday_delta > 1'
+```
+
+
+Here's a data generation script I used to generate the input for this example:
+
+```python
+#!/usr/bin/env python
+
+import random
+from datetime import datetime, timedelta
+
+
+today = datetime.today()
+dates = [today - timedelta(days=i) for i in range(15)]
+
+random.seed(42)
+
+for userid in range(1,3):
+    for class_id in [1007, 3001, 3003]:
+        for date in dates:
+            day = date.strftime('%Y-%m-%d')
+            for fileid in range(0,random.randint(0,2)):
+                line = f"data/ocsf/user=user{userid}/class=class{class_id}"
+                line += f"/date={day}/file-{fileid}"
+                if random.randint(0,99) > 5:
+                    print(line)
+```
+
+
+

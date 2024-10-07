@@ -13,10 +13,11 @@ The ones that I tend to use most are:
 
 ## stats
 
-`stats` is a compantion script to (scut)[https://github.com/hjmangalam/scut]
+[stats](https://github.com/hjmangalam/stats/blob/master/stats) is a companion
+script to [scut](https://github.com/hjmangalam/scut)
 that prints discriptive statistics for a single column of numeric inputs. 
 
-https://github.com/hjmangalam/scut/blob/master/stats
+[https://github.com/hjmangalam/scut/blob/master/stats](https://github.com/hjmangalam/scut/blob/master/stats):
 
     seq 10 | stats
      Sum       55
