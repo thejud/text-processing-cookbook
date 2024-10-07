@@ -236,25 +236,7 @@ user=aaa	class=3002	date=2024-09-02	date=2024-09-21	2
 
 See [datamash](project:specialized-data-tools.md#datamash)
 
-80s_keycaps.png
-_static
-_templates
-batch-and-parallel-execution.md
-conf.py
-csv-tsv-json.md
-extraction.md
-filter-and-select.md
-frequency-counts-and-distributions.md
-generating-data.md
-grouping-data.md
-index.rst
-introduction.md
-solutions.md
-sorting.md
-transformation.md
-visualization.md
-
-8. Format the data into nicer columns for easy viewing/copypaste
+8. Pretty print the data into nicer columns for easy viewing/copypaste
 
 ```
 | column -t
@@ -289,17 +271,17 @@ user=bbb  class=103006  date=2024-10-03  date=2024-10-03  1
 
 10. Final steps
 
-With this summary, I was able to determine that the data began arriving on
-different days for not only differnt users, but even with indffernt event
+After summarizing the data, I determines that the data began arriving on
+different days for not only differnt users, but even within different event
 classes for the same user.
 
-I did a bit more cleanup (removed the `<field>=`), get a list of all days for each line using the datamash `collapse` aggregator, etc..
+I did a bit more cleanup (removed the `<field>=`), get a list of all days for each line using the datamash `collapse` aggregator, etc...
 
-and then I was ready to not only answer my coworker's question, but also send a
+Then I was ready to not only answer my coworker's question, but also send a
 message to the data ingestion team about the missing days.
 
 At each step in the process, I would typically pipe the output to `head` so I was only getting the top 10 results. That
-was enough for me to check each step before processing onto the next.
+was enough for me to check each step before processing onto the next, and allowed me to rapidly iterate through the examples.
 
 
 

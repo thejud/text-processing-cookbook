@@ -36,11 +36,14 @@ source_suffix = {
 html_theme = 'alabaster'
 html_static_path = ['_static']
 html_theme_options = {
+        'description': 'Tools and techniques for processing text and data on the command line',
         'show_relbars': True,
         'github_banner': True,
         'github_button': True,
         'github_user':  'thejud',
         'github_repo':  'the-text-processing-cookbook',
+        'github_type': 'star',
+        'github_count': True,
 #        'logo': '../80s_keycaps.png',
         'canonical_url': 'https://thejud.github.io/text-processing-cookbook/'
 }

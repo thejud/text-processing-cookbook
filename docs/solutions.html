@@ -244,25 +244,8 @@ text transformations like count, first, last and collapse.</p>
 </pre></div>
 </div>
 <p>See <a class="reference internal" href="specialized-data-tools.html#datamash"><span class="std std-ref">datamash</span></a></p>
-<p>80s_keycaps.png
-_static
-_templates
-batch-and-parallel-execution.md
-conf.py
-csv-tsv-json.md
-extraction.md
-filter-and-select.md
-frequency-counts-and-distributions.md
-generating-data.md
-grouping-data.md
-index.rst
-introduction.md
-solutions.md
-sorting.md
-transformation.md
-visualization.md</p>
 <ol class="arabic simple" start="8">
-<li><p>Format the data into nicer columns for easy viewing/copypaste</p></li>
+<li><p>Pretty print the data into nicer columns for easy viewing/copypaste</p></li>
 </ol>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="o">|</span> <span class="n">column</span> <span class="o">-</span><span class="n">t</span>
 </pre></div>
@@ -294,14 +277,14 @@ visualization.md</p>
 <ol class="arabic simple" start="10">
 <li><p>Final steps</p></li>
 </ol>
-<p>With this summary, I was able to determine that the data began arriving on
-different days for not only differnt users, but even with indffernt event
+<p>After summarizing the data, I determines that the data began arriving on
+different days for not only differnt users, but even within different event
 classes for the same user.</p>
-<p>I did a bit more cleanup (removed the <code class="docutils literal notranslate"><span class="pre">&lt;field&gt;=</span></code>), get a list of all days for each line using the datamash <code class="docutils literal notranslate"><span class="pre">collapse</span></code> aggregator, etc..</p>
-<p>and then I was ready to not only answer my coworker’s question, but also send a
+<p>I did a bit more cleanup (removed the <code class="docutils literal notranslate"><span class="pre">&lt;field&gt;=</span></code>), get a list of all days for each line using the datamash <code class="docutils literal notranslate"><span class="pre">collapse</span></code> aggregator, etc…</p>
+<p>Then I was ready to not only answer my coworker’s question, but also send a
 message to the data ingestion team about the missing days.</p>
 <p>At each step in the process, I would typically pipe the output to <code class="docutils literal notranslate"><span class="pre">head</span></code> so I was only getting the top 10 results. That
-was enough for me to check each step before processing onto the next.</p>
+was enough for me to check each step before processing onto the next, and allowed me to rapidly iterate through the examples.</p>
 </section>
 </section>
 
@@ -330,11 +313,13 @@ was enough for me to check each step before processing onto the next.</p>
 
 
 
+<p class="blurb">Tools and techniques for processing text and data on the command line</p>
+
 
 
 
 <p>
-<iframe src="https://ghbtns.com/github-btn.html?user=thejud&repo=the-text-processing-cookbook&type=watch&count=true&size=large&v=2"
+<iframe src="https://ghbtns.com/github-btn.html?user=thejud&repo=the-text-processing-cookbook&type=star&count=True&size=large&v=2"
   allowtransparency="true" frameborder="0" scrolling="0" width="200px" height="35px"></iframe>
 </p>
 
