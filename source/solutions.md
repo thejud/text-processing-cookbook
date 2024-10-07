@@ -10,7 +10,7 @@ small, simple transformations.
 
 ## Find available data by user, event class and date
 
-This is a more detailled exploration of the example I showed in the [Introduction](project:introduction.md).
+This is a more detailed exploration of the example I showed in the [Introduction](project:introduction.md).
 
 Recently, a coworker asked what dates had data available to analyze for a
 machine learning project. The data had been collected into S3, grouped into

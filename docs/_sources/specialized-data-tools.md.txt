@@ -123,10 +123,11 @@ do computation and stats on the command line
 
 For very simple summary stats, I often turn to the `stats` command or
 `csvstat`. However, if I want to do a bit more, like aggregate by one or more
-columns, `gnu datamash` is very useful. It handles large streamed data sets
-very quickly, and has a variety of statistical functions available. By default
-it breaks on tabs. Use the -W option to break on whitespace.
-Convert CSV data to TSV transforming data via `csvformat -T` if you have csv input data.
+columns, [gnu datamash](https://www.gnu.org/software/datamash/manual/datamash.html)
+is very useful. It handles large streamed data sets very quickly, and has a
+variety of statistical functions available. By default it breaks on tabs. Use
+the -W option to break on whitespace. Convert CSV data to TSV transforming data
+via `csvformat -T` if you have csv input data.
 
 From the [datamash manual](https://www.gnu.org/software/datamash/manual/datamash.html):
 

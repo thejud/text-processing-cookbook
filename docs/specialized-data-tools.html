@@ -172,10 +172,11 @@ the error message has gone away because we added the headers.</p>
 <h3>quick grouped stats with datamash<a class="headerlink" href="#quick-grouped-stats-with-datamash" title="Link to this heading">¶</a></h3>
 <p>For very simple summary stats, I often turn to the <code class="docutils literal notranslate"><span class="pre">stats</span></code> command or
 <code class="docutils literal notranslate"><span class="pre">csvstat</span></code>. However, if I want to do a bit more, like aggregate by one or more
-columns, <code class="docutils literal notranslate"><span class="pre">gnu</span> <span class="pre">datamash</span></code> is very useful. It handles large streamed data sets
-very quickly, and has a variety of statistical functions available. By default
-it breaks on tabs. Use the -W option to break on whitespace.
-Convert CSV data to TSV transforming data via <code class="docutils literal notranslate"><span class="pre">csvformat</span> <span class="pre">-T</span></code> if you have csv input data.</p>
+columns, <a class="reference external" href="https://www.gnu.org/software/datamash/manual/datamash.html">gnu datamash</a>
+is very useful. It handles large streamed data sets very quickly, and has a
+variety of statistical functions available. By default it breaks on tabs. Use
+the -W option to break on whitespace. Convert CSV data to TSV transforming data
+via <code class="docutils literal notranslate"><span class="pre">csvformat</span> <span class="pre">-T</span></code> if you have csv input data.</p>
 <p>From the <a class="reference external" href="https://www.gnu.org/software/datamash/manual/datamash.html">datamash manual</a>:</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="c1"># NOTE: apparently the sample data uses tabs, while this example uses whitespace</span>
 <span class="n">cat</span> <span class="o">&gt;</span> <span class="n">scores</span><span class="o">.</span><span class="n">txt</span> <span class="o">&lt;&lt;</span> <span class="n">EOF</span>
