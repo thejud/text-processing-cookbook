@@ -71,12 +71,12 @@ cat /tmp/files
 ```
 
 I'll work through the small (10 line) file list from above for conciseness and
-reproducibility. As a result, the final counts will not match the output show
+reproducibility. As a result, the final counts will not match the output shown
 above that used the entire dataset.
 
 So, step by step, the process is as follows: 
 
-1. Grab the filenemame (the last field) from each line
+1. Take the filenemame (the last field) from each line
 
 ```
 | awk '{print $NF}' 

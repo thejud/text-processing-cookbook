@@ -107,11 +107,11 @@ last date, and count of files.</p>
 </pre></div>
 </div>
 <p>I’ll work through the small (10 line) file list from above for conciseness and
-reproducibility. As a result, the final counts will not match the output show
+reproducibility. As a result, the final counts will not match the output shown
 above that used the entire dataset.</p>
 <p>So, step by step, the process is as follows:</p>
 <ol class="arabic simple">
-<li><p>Grab the filenemame (the last field) from each line</p></li>
+<li><p>Take the filenemame (the last field) from each line</p></li>
 </ol>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="o">|</span> <span class="n">awk</span> <span class="s1">&#39;{print $NF}&#39;</span> 
 </pre></div>
