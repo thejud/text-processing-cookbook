@@ -10,7 +10,7 @@ small, simple transformations.
 
 ## Find available data by user, event class and date
 
-This is a more detailled exploration of the example I showed in the [Introduction](project:introduction.md).
+This is a more detailed exploration of the example I showed in the [Introduction](project:introduction.md).
 
 On a project, a coworker asked what dates were available to analyze
 in a machine learning project. The data had been collected into S3, grouped
@@ -282,8 +282,4 @@ message to the data ingestion team about the missing days.
 
 At each step in the process, I would typically pipe the output to `head` so I was only getting the top 10 results. That
 was enough for me to check each step before processing onto the next, and allowed me to rapidly iterate through the examples.
-
-
-
-
 
