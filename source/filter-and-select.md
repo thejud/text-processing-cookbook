@@ -15,6 +15,16 @@ search, avoiding .git files, and a few other nice features.
 
 `brew install the_silver_searcher` or `apt-get install silversearcher-ag`
 
+## ripgrep - a modern search tool
+
+Recently, I have also begun experimenting with
+[ripgrep](https://github.com/BurntSushi/ripgrep) which is reportedly faster,
+and provides a few nice features like the ability to search within compressed
+files.
+
+It is under active development, and I am slowly starting to use it in place
+of `ag`.
+
 ## searching via perl
 
 perl also has built-in regular expressions, and a few other things that make it
