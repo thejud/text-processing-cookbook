@@ -36,7 +36,7 @@ source_suffix = {
 html_theme = 'alabaster'
 html_static_path = ['_static']
 html_theme_options = {
-        'description': 'Tools and techniques for processing text and data on the command line',
+        'description': 'Tools and techniques for processing text and data on the command line by Jud Dagnall',
         'show_relbars': True,
         'github_banner': True,
         'github_button': True,

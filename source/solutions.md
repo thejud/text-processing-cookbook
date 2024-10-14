@@ -12,14 +12,16 @@ small, simple transformations.
 
 This is a more detailed exploration of the example I showed in the [Introduction](project:introduction.md).
 
-Recently, a coworker asked what dates had data available to analyze for a
-machine learning project. The data had been collected into S3, grouped into
-folders by event class, user, and date. As I knew where the data was stored in
-S3, I listed the files using an `s3 ls --recursive` command
-and stored that list a file for quick summarization.
+Recently, I got a question about what data was available for a machine learning
+project. The data was in S3, and organized by event code, user and date for a
+period of several weeks. However, data ingestion had begun at different times
+for different groups, and so my coworker wanted to know the available date
+ranges for various event codes. 
 
-The S3 output was a list of several hundred files approximately like below.
-Each line had a file creation data, a size, and then the file path that encodes:
+I was able to quickly list the files using an `s3 ls --recursive` command
+and store that in a local file for quick summarization.
+
+Each line had a file creation date, a size, and then the file path that encodes:
 
 - an event class
 - a user id

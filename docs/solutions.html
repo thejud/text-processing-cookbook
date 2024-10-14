@@ -55,13 +55,14 @@ small, simple transformations.</p>
 <section id="find-available-data-by-user-event-class-and-date">
 <h2>Find available data by user, event class and date<a class="headerlink" href="#find-available-data-by-user-event-class-and-date" title="Link to this heading">¶</a></h2>
 <p>This is a more detailed exploration of the example I showed in the <a class="reference internal" href="introduction.html"><span class="std std-doc">Introduction</span></a>.</p>
-<p>Recently, a coworker asked what dates had data available to analyze for a
-machine learning project. The data had been collected into S3, grouped into
-folders by event class, user, and date. As I knew where the data was stored in
-S3, I listed the files using an <code class="docutils literal notranslate"><span class="pre">s3</span> <span class="pre">ls</span> <span class="pre">--recursive</span></code> command
-and stored that list a file for quick summarization.</p>
-<p>The S3 output was a list of several hundred files approximately like below.
-Each line had a file creation data, a size, and then the file path that encodes:</p>
+<p>Recently, I got a question about what data was available for a machine learning
+project. The data was in S3, and organized by event code, user and date for a
+period of several weeks. However, data ingestion had begun at different times
+for different groups, and so my coworker wanted to know the available date
+ranges for various event codes.</p>
+<p>I was able to quickly list the files using an <code class="docutils literal notranslate"><span class="pre">s3</span> <span class="pre">ls</span> <span class="pre">--recursive</span></code> command
+and store that in a local file for quick summarization.</p>
+<p>Each line had a file creation date, a size, and then the file path that encodes:</p>
 <ul class="simple">
 <li><p>an event class</p></li>
 <li><p>a user id</p></li>
@@ -319,7 +320,7 @@ was enough for me to check each step before processing onto the next, and allowe
 
 
 
-<p class="blurb">Tools and techniques for processing text and data on the command line</p>
+<p class="blurb">Tools and techniques for processing text and data on the command line by Jud Dagnall</p>
 
 
 

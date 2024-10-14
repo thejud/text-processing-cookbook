@@ -67,12 +67,14 @@ of commands that are very effective on small to medium sized datasets (able to
 fit on a single machine). Without doing a lot of programming, I can do
 exploratory analysis, and answer many types of questions quickly.</p>
 <p>Here is a reasonably complex example:</p>
-<p>On a project, a coworker asked what dates were available to analyze
-in a machine learning project. The data had been collected into S3, grouped
-by event class, user, and date. As I knew where the data was stored in S3,
-I was able to quickly list the files using an <code class="docutils literal notranslate"><span class="pre">s3</span> <span class="pre">ls</span> <span class="pre">--recursive</span></code> command
-and store that in a file for quick summarization.</p>
-<p>The S3 output was a list of several hundred files approximately like below.
+<p>Recently, I got a question about what data was available for a machine learning
+project. The data was in S3, and organized by event code, user and date for a
+period of several weeks. However, data ingestion had begun at different times
+for different groups, and so my coworker wanted to know the available date
+ranges for various event codes.</p>
+<p>I was able to quickly list the S3 files using an <code class="docutils literal notranslate"><span class="pre">s3</span> <span class="pre">ls</span> <span class="pre">--recursive</span></code> command
+and store that in a local file for quick summarization.</p>
+<p>The S3 output was a list of several thousand files approximately like below.
 Each line has a creation data, a size, and then the file path that encodes:</p>
 <ul class="simple">
 <li><p>an event class</p></li>
@@ -193,7 +195,7 @@ of input even if I only provide one line of input, e.g.
 
 
 
-<p class="blurb">Tools and techniques for processing text and data on the command line</p>
+<p class="blurb">Tools and techniques for processing text and data on the command line by Jud Dagnall</p>
 
 
 
