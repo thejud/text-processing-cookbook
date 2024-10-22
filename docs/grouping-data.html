@@ -60,9 +60,26 @@ cat data | sort | uniq
 </pre></div>
 </div>
 </section>
-<section id="find-unique-items">
-<h2>Find unique items<a class="headerlink" href="#find-unique-items" title="Link to this heading">¶</a></h2>
-<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>cat data | sort | uniq -u
+<section id="find-distinct-items-without-sorting">
+<h2>Find distinct items without sorting<a class="headerlink" href="#find-distinct-items-without-sorting" title="Link to this heading">¶</a></h2>
+<p>The recipe above relies on a sort. However, sometimes
+you know that you dataset will fit in memory, and just want to remove any duplicate items
+without the sort. Here are four approaches, from <a class="reference external" href="https://stackoverflow.com/questions/1444406/how-to-delete-duplicate-lines-in-a-file-without-sorting-it-in-unix">SO</a></p>
+<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>cat data | awk &#39;!seen[$0]++&#39; file.txt
+
+cat data | perl -ne&#39;print unless $seen{$_}++&#39;
+</pre></div>
+</div>
+<p>These first to work by constructing a hashmap that is incremented as each new entry is added, but the magic
+lies in the autovivification and post-increment behavior. The ‘seen’ hash is checked, and only AFTER check
+is the value incremented. Both Awk and perl set the initial value of a hash to zero-equivalent value.</p>
+<p>The next one relies on <a class="reference external" href="https://www.gnu.org/software/datamash/">datamash</a> with is described later
+under <a class="reference internal" href="specialized-data-tools.html#datamash"><span class="std std-ref">datamash</span></a></p>
+<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>cat data | datamash rmdup 1
+</pre></div>
+</div>
+<p>Another tool that <a class="reference external" href="https://github.com/koraa/huniq">claims to be faster</a>:</p>
+<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>cat data | huniq
 </pre></div>
 </div>
 </section>
@@ -71,6 +88,14 @@ cat data | sort | uniq
 <div class="highlight-none notranslate"><div class="highlight"><pre><span></span>cat data | sort | uniq -d
 </pre></div>
 </div>
+</section>
+<section id="find-duplicate-items-without-sorting">
+<h2>Find duplicate items without sorting<a class="headerlink" href="#find-duplicate-items-without-sorting" title="Link to this heading">¶</a></h2>
+<p>This is almost the inverse of the perl approach above:</p>
+<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>cat data | perl -ne&#39;print if ++seen{$_} == 2&#39;
+</pre></div>
+</div>
+<p>In this case, we increment the value BEFORE we check it.</p>
 </section>
 <section id="find-lines-that-are-in-one-file-but-not-in-another">
 <h2>Find lines that are in one file, but not in another<a class="headerlink" href="#find-lines-that-are-in-one-file-but-not-in-another" title="Link to this heading">¶</a></h2>
@@ -203,8 +228,9 @@ but sometimes it’s useful to split the files for later processing.</p>
 <li class="toctree-l1"><a class="reference internal" href="transformation.html">Transformation</a></li>
 <li class="toctree-l1 current"><a class="current reference internal" href="#">Grouping Data</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="#find-distinct-items-removing-duplicates">Find distinct items, removing duplicates</a></li>
-<li class="toctree-l2"><a class="reference internal" href="#find-unique-items">Find unique items</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#find-distinct-items-without-sorting">Find distinct items without sorting</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#find-duplicate-items">Find duplicate items</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#find-duplicate-items-without-sorting">Find duplicate items without sorting</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#find-lines-that-are-in-one-file-but-not-in-another">Find lines that are in one file, but not in another</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#split-data-into-files-based-on-a-field">Split data into files based on a field</a></li>
 </ul>

@@ -6,13 +6,46 @@
 
     cat data | sort | uniq
 
-## Find unique items
+## Find distinct items without sorting
 
-    cat data | sort | uniq -u
+The recipe above relies on a sort. However, sometimes
+you know that you dataset will fit in memory, and just want to remove any duplicate items
+without the sort. Here are four approaches, from [SO](https://stackoverflow.com/questions/1444406/how-to-delete-duplicate-lines-in-a-file-without-sorting-it-in-unix)
+
+
+    cat data | awk '!seen[$0]++' file.txt
+
+    cat data | perl -ne'print unless $seen{$_}++'
+
+
+These first to work by constructing a hashmap that is incremented as each new entry is added, but the magic
+lies in the autovivification and post-increment behavior. The 'seen' hash is checked, and only AFTER check
+is the value incremented. Both Awk and perl set the initial value of a hash to zero-equivalent value. 
+
+The next one relies on [datamash](https://www.gnu.org/software/datamash/) with is described later
+under [datamash](project:specialized-data-tools.md#datamash)
+
+    cat data | datamash rmdup 1
+
+
+Another tool that [claims to be faster](https://github.com/koraa/huniq):
+
+    cat data | huniq
+
 
 ## Find duplicate items
 
     cat data | sort | uniq -d
+
+
+## Find duplicate items without sorting
+
+This is almost the inverse of the perl approach above:
+
+    cat data | perl -ne'print if ++seen{$_} == 2'
+
+In this case, we increment the value BEFORE we check it.
+
 
 ## Find lines that are in one file, but not in another
 
