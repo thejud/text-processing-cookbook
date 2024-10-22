@@ -73,7 +73,7 @@ cat data | perl -ne&#39;print unless $seen{$_}++&#39;
 <p>These first to work by constructing a hashmap that is incremented as each new entry is added, but the magic
 lies in the autovivification and post-increment behavior. The ‘seen’ hash is checked, and only AFTER check
 is the value incremented. Both Awk and perl set the initial value of a hash to zero-equivalent value.</p>
-<p>The next one relies on <a class="reference external" href="https://www.gnu.org/software/datamash/">datamash</a> with is described later
+<p>The next approach relies on <a class="reference external" href="https://www.gnu.org/software/datamash/">datamash</a> which is described later
 under <a class="reference internal" href="specialized-data-tools.html#datamash"><span class="std std-ref">datamash</span></a></p>
 <div class="highlight-none notranslate"><div class="highlight"><pre><span></span>cat data | datamash rmdup 1
 </pre></div>

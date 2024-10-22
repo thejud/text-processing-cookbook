@@ -22,7 +22,7 @@ These first to work by constructing a hashmap that is incremented as each new en
 lies in the autovivification and post-increment behavior. The 'seen' hash is checked, and only AFTER check
 is the value incremented. Both Awk and perl set the initial value of a hash to zero-equivalent value. 
 
-The next one relies on [datamash](https://www.gnu.org/software/datamash/) with is described later
+The next approach relies on [datamash](https://www.gnu.org/software/datamash/) which is described later
 under [datamash](project:specialized-data-tools.md#datamash)
 
     cat data | datamash rmdup 1
