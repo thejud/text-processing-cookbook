@@ -84,7 +84,7 @@ step in analyzing errors per minute.</p>
 entire line. perl’s <code class="docutils literal notranslate"><span class="pre">-n</span></code> flag loops over all the input, but doesn’t print
 anything. The -E flag is an updated version of the -e flag that just makes some
 of the more modern perl features available. I use <code class="docutils literal notranslate"><span class="pre">-E</span></code> mostly so that I can use
-<code class="docutils literal notranslate"><span class="pre">say</span> <span class="pre">$var</span></code> instead of <code class="docutils literal notranslate"><span class="pre">print</span> <span class="pre">&quot;$var\n&quot;</span></code>, because say is shorter and automically
+<code class="docutils literal notranslate"><span class="pre">say</span> <span class="pre">$var</span></code> instead of <code class="docutils literal notranslate"><span class="pre">print</span> <span class="pre">&quot;$var\n&quot;</span></code>, because say is shorter and automatically
 adds a trailing newline.</p>
 <div class="highlight-none notranslate"><div class="highlight"><pre><span></span>printf &quot;2017-11-01T12:14:22.12352 ERROR critical&quot; \
 | perl -nE&#39;/T(\d\d:\d\d):\S+ (ERROR|FATAL)/ and say &quot;$1 $2&quot;&#39;
@@ -141,7 +141,7 @@ filter to extract the number:</p>
 </div>
 <p>However that gave me output like “22,124”, which wasn’t yet ready for
 averaging. So I spent a minute or two fiddling with the filter and ended up with
-the follwing:</p>
+the following:</p>
 <div class="highlight-none notranslate"><div class="highlight"><pre><span></span>cat log | perl -nE&#39;/per_sec=(\S+)/ and do { ( $a =$1 ) =~ s/,//g; say $a}&#39;
 </pre></div>
 </div>
@@ -332,7 +332,7 @@ EOM
 </div>
 <p>And we’ll generate all the minutes in our range. See the generation section or
 the section on gnu parallel for some additional ideas, but here’s an example of
-using the seq command with a template. tee prints the ouput both to a file, and
+using the seq command with a template. tee prints the output both to a file, and
 to the screen.</p>
 <div class="highlight-none notranslate"><div class="highlight"><pre><span></span>seq -f &quot;12:%02.0f&quot; 31 37 | tee minutes
 12:31
@@ -578,7 +578,7 @@ joining with spaces. <code class="docutils literal notranslate"><span class="pre
 </pre></div>
 </div>
 <p>To have a specific number of columns, still space separated, have xargs break
-it up for you. here’s we’re chosing 5 at a time, and notice that the alignment
+it up for you. here’s we’re choosing 5 at a time, and notice that the alignment
 isn’t very good. See <code class="docutils literal notranslate"><span class="pre">column</span></code> above for how to align columns.</p>
 <div class="highlight-none notranslate"><div class="highlight"><pre><span></span>seq 20 | xargs -n5 echo
  1 2 3 4 5
@@ -647,7 +647,7 @@ data. One technique is to split the input into separate files by column,
 process each column separately, and then recombine the column files with the
 <code class="docutils literal notranslate"><span class="pre">paste</span></code> command. Note that this most useful when the number of columns is
 relatively small. Here I’m doing it with the same 3-column file.</p>
-<p>Create one file per colum:</p>
+<p>Create one file per column:</p>
 <div class="highlight-none notranslate"><div class="highlight"><pre><span></span>awk &#39;{print $1}&#39; data &gt; a.01
 awk &#39;{print $2}&#39; data &gt; a.02
 awk &#39;{print $3}&#39; data &gt; a.03
@@ -724,10 +724,10 @@ paste -d &#39; &#39; /tmp/transform.*
 <li><p>extract every 10th line into its own file, round robin style <code class="docutils literal notranslate"><span class="pre">-nr/10</span></code></p></li>
 <li><p>create numeric filename suffixes <code class="docutils literal notranslate"><span class="pre">-d</span></code> (default to 2 digits. Starts with 00)</p></li>
 <li><p>read from STDIN <code class="docutils literal notranslate"><span class="pre">-</span></code></p></li>
-<li><p>write ouput files with a prefix <code class="docutils literal notranslate"><span class="pre">/tmp/transform.</span></code></p></li>
+<li><p>write output files with a prefix <code class="docutils literal notranslate"><span class="pre">/tmp/transform.</span></code></p></li>
 </ul>
 <p>Note that the split files start at 00, so we transformed the 9th column in
-<code class="docutils literal notranslate"><span class="pre">/tmp/tranform.08</span></code>. We did another trivial transformation (multiply the value
+<code class="docutils literal notranslate"><span class="pre">/tmp/transform.08</span></code>. We did another trivial transformation (multiply the value
 by 10).</p>
 </section>
 </section>

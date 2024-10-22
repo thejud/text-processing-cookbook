@@ -85,7 +85,7 @@ awk has a really simple way to split data into separate files based on a field.
 
 `{print > $1}`, which prints the line into a file named in the first column.
 
-Here's a more concrete example, using this techinque in conjuction with a program called `average` that, not surprisingly, computes the average of its inputs. The input is a request rate, and the date portion of a timestamp extracted from a log file:
+Here's a more concrete example, using this technique in conjunction with a program called `average` that, not surprisingly, computes the average of its inputs. The input is a request rate, and the date portion of a timestamp extracted from a log file:
 
 The input date:
 

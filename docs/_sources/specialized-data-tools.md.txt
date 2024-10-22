@@ -14,7 +14,7 @@ The ones that I tend to use most are:
 ## stats
 
 `stats` is a compantion script to (scut)[https://github.com/hjmangalam/scut]
-that prints discriptive statistics for a single column of numeric inputs. 
+that prints descriptive statistics for a single column of numeric inputs. 
 
 https://github.com/hjmangalam/scut/blob/master/stats
 

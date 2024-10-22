@@ -59,7 +59,7 @@ and regular expressions going forward.</p>
 <section id="ag-the-silver-searcher">
 <h2>ag - the silver searcher<a class="headerlink" href="#ag-the-silver-searcher" title="Link to this heading">¶</a></h2>
 <p><a class="reference external" href="https://github.com/ggreer/the_silver_searcher">ag - AKA the silver searcher</a> is
-a fast, flexible alternative to grep forcused on powerful searches with
+a fast, flexible alternative to grep focused on powerful searches with
 perl-compatible regular expressions and common default options like recursive
 search, avoiding .git files, and a few other nice features.</p>
 <p><code class="docutils literal notranslate"><span class="pre">brew</span> <span class="pre">install</span> <span class="pre">the_silver_searcher</span></code> or <code class="docutils literal notranslate"><span class="pre">apt-get</span> <span class="pre">install</span> <span class="pre">silversearcher-ag</span></code></p>
@@ -99,7 +99,7 @@ modern perl features like <code class="docutils literal notranslate"><span class
 <p>The print function will print the current line by default.</p>
 <p><code class="docutils literal notranslate"><span class="pre">eof</span></code> is the end of the file, and is relatively self-explanatory. What is interesting is that you can print
 the last line once eof is detected.</p>
-<p>Found an altenative recently that uses the perl flip-flop operator, described below: https://unix.stackexchange.com/a/139199</p>
+<p>Found an alternative recently that uses the perl flip-flop operator, described below: https://unix.stackexchange.com/a/139199</p>
 <div class="highlight-none notranslate"><div class="highlight"><pre><span></span>seq 10 |  perl -ne &#39;print if 1..1 or eof&#39;
  1
  10
@@ -223,7 +223,7 @@ cat delims.txt | perl -nE&#39;print if /START/../END/&#39;
 <h3>Going deeper - Extracting nested fields with the perl flip-flop operator<a class="headerlink" href="#going-deeper-extracting-nested-fields-with-the-perl-flip-flop-operator" title="Link to this heading">¶</a></h3>
 <p>My friend Robert Stone pointed out that the flip-flop operators can be nested,
 and you can use this technique to find nested delimiters. Note that for this to
-work, you need to have separate start/end delimters for each section.</p>
+work, you need to have separate start/end delimiters for each section.</p>
 <p>You can use <code class="docutils literal notranslate"><span class="pre">/start1/../end1/</span> <span class="pre">and</span> <span class="pre">/start_inner/../end_inner/</span></code> to find start2 within
 start1 blocks.</p>
 <p>Note that if this gets much more complicated, you will likely be better off using a dedicated parser, but you can go as deep

@@ -18,7 +18,7 @@ I use a few options frequently:
 
 *  `-n 1` to only pass one argument at a time, like a for loop. Note that many
    of the common uses of xargs can also be replaced by a simple bash for loop.
-* parameter subsitution with `-I %`. If I want multiple replacements, or need to an an extension, that's a good way.
+* parameter substitution with `-I %`. If I want multiple replacements, or need to an an extension, that's a good way.
 
     ls -1 *.sql | xargs -n 1 -I % echo mycommand --logfile %.log %
      mycommand --logfile 201701.csv.log 201701.csv
@@ -28,7 +28,7 @@ I use a few options frequently:
 
 ```
 # gzip csv files, with four parallel processes.
-# print lines as we execut them, and send one file
+# print lines as we execute them, and send one file
 # at a time to each invocation
 
 ls -t -1 *.csv | xargs -P 4 -t -n 1 gzip   
@@ -61,6 +61,6 @@ without the extension, and {/.} is the basename without the extension.
 
 See also: [sem](https://www.gnu.org/software/parallel/sem.html), part of the
 gnu parallel package, which allows you to easily limit the number of concurrent
-proceses without the complexity of parallel. Very useful for running N jobs in
+processes without the complexity of parallel. Very useful for running N jobs in
 parallel inside a simple for loop.
 

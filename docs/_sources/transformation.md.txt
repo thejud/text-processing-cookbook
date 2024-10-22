@@ -35,7 +35,7 @@ I tend to prefer to only take the parts I want, rather than replacing the
 entire line. perl's `-n` flag loops over all the input, but doesn't print
 anything. The -E flag is an updated version of the -e flag that just makes some
 of the more modern perl features available. I use `-E` mostly so that I can use
-`say $var` instead of `print "$var\n"`, because say is shorter and automically
+`say $var` instead of `print "$var\n"`, because say is shorter and automatically
 adds a trailing newline.
 
 
@@ -96,7 +96,7 @@ filter to extract the number:
 
 However that gave me output like "22,124", which wasn't yet ready for
 averaging. So I spent a minute or two fiddling with the filter and ended up with
-the follwing:
+the following:
 
     cat log | perl -nE'/per_sec=(\S+)/ and do { ( $a =$1 ) =~ s/,//g; say $a}'
 
@@ -288,7 +288,7 @@ count pipeline, described below.
 
 And we'll generate all the minutes in our range. See the generation section or
 the section on gnu parallel for some additional ideas, but here's an example of
-using the seq command with a template. tee prints the ouput both to a file, and
+using the seq command with a template. tee prints the output both to a file, and
 to the screen.
 
     seq -f "12:%02.0f" 31 37 | tee minutes
@@ -548,7 +548,7 @@ joining with spaces. `xargs echo` can also be used.
      1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20
 
 To have a specific number of columns, still space separated, have xargs break
-it up for you. here's we're chosing 5 at a time, and notice that the alignment
+it up for you. here's we're choosing 5 at a time, and notice that the alignment
 isn't very good. See `column` above for how to align columns.
 
     seq 20 | xargs -n5 echo
@@ -623,7 +623,7 @@ process each column separately, and then recombine the column files with the
 `paste` command. Note that this most useful when the number of columns is
 relatively small. Here I'm doing it with the same 3-column file.
 
-Create one file per colum:
+Create one file per column:
 
     awk '{print $1}' data > a.01
     awk '{print $2}' data > a.02
@@ -706,9 +706,9 @@ The `gsplit` (or `split` on linux) command magic is as follows:
 * extract every 10th line into its own file, round robin style `-nr/10`
 * create numeric filename suffixes `-d` (default to 2 digits. Starts with 00) 
 * read from STDIN `-`
-* write ouput files with a prefix `/tmp/transform.`
+* write output files with a prefix `/tmp/transform.`
 
 Note that the split files start at 00, so we transformed the 9th column in
-`/tmp/tranform.08`. We did another trivial transformation (multiply the value
+`/tmp/transform.08`. We did another trivial transformation (multiply the value
 by 10).
 

@@ -22,7 +22,7 @@ There's a useful command that I discovered for this called pv. `brew install pv`
     seq 50111222 | pv -lapbet | wc -l
      23.1M 0:00:07 [3.29M/s] [                  <=>
 
-pv can produce a litle curses progress meter that updates as you go. It has a lot of formatting options,
+pv can produce a little curses progress meter that updates as you go. It has a lot of formatting options,
 including the lines format, the default bytes format, ETA and other goodies.
 
 You can also create a trivial monitor in perl:

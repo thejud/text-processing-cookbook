@@ -278,7 +278,7 @@ user=bbb  class=103006  date=2024-10-03  date=2024-10-03  1
 10. Final steps
 
 After summarizing the data, I determines that the data began arriving on
-different days for not only differnt users, but even within different event
+different days for not only different users, but even within different event
 classes for the same user.
 
 I did a bit more cleanup (removed the `<field>=`), get a list of all days for each line using the datamash `collapse` aggregator, etc...
