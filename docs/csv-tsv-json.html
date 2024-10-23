@@ -103,7 +103,7 @@ joe
 </pre></div>
 </div>
 <p>I nearly always use jq for my json needs. However, I’ve recently been dealing with json that contains very large numeric ids.
-Unfortuntely jq rounds large integers.</p>
+Unfortunately jq rounds large integers.</p>
 <div class="highlight-none notranslate"><div class="highlight"><pre><span></span>echo &#39;{&quot;a&quot;:11111222223333344444}&#39; | jq .
 {
   &quot;a&quot;: 11111222223333345000
