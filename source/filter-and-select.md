@@ -9,7 +9,7 @@ and regular expressions going forward.
 ## ag - the silver searcher
 
 [ag - AKA the silver searcher](https://github.com/ggreer/the_silver_searcher) is
-a fast, flexible alternative to grep forcused on powerful searches with
+a fast, flexible alternative to grep focused on powerful searches with
 perl-compatible regular expressions and common default options like recursive
 search, avoiding .git files, and a few other nice features.
 
@@ -58,7 +58,7 @@ The print function will print the current line by default.
 `eof` is the end of the file, and is relatively self-explanatory. What is interesting is that you can print
 the last line once eof is detected.
 
-Found an altenative recently that uses the perl flip-flop operator, described below: https://unix.stackexchange.com/a/139199
+Found an alternative recently that uses the perl flip-flop operator, described below: https://unix.stackexchange.com/a/139199
 
     seq 10 |  perl -ne 'print if 1..1 or eof'
      1
@@ -183,7 +183,7 @@ Here's an example of some data that is delimited by 'START' and 'END'
 
 My friend Robert Stone pointed out that the flip-flop operators can be nested,
 and you can use this technique to find nested delimiters. Note that for this to
-work, you need to have separate start/end delimters for each section.  
+work, you need to have separate start/end delimiters for each section.  
 
 You can use `/start1/../end1/ and /start_inner/../end_inner/` to find start2 within
 start1 blocks.

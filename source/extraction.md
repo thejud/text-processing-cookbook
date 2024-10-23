@@ -44,7 +44,7 @@ Print the 2nd from the last column:
 ## Extract simple fields via cut
 
 cut is designed to extract fields from a line, given a single character
-delimiter or position list. It will not split on patterns or multi-chararacter
+delimiter or position list. It will not split on patterns or multi-character
 delimiters. Use `awk` or one of the tools described below if you have more
 complicated data. By default, it splits fields on a single tab character, but
 you can easily specify something else with the `-d' option.

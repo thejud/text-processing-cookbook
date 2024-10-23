@@ -52,7 +52,7 @@ I just remember how to index down into object, and print out the raw values:
     joe
 
 I nearly always use jq for my json needs. However, I've recently been dealing with json that contains very large numeric ids.
-Unfortuntely jq rounds large integers.
+Unfortunately jq rounds large integers.
 
 
     echo '{"a":11111222223333344444}' | jq .

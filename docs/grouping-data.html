@@ -126,7 +126,7 @@ remove the lines from the other.</p>
 <h2>Split data into files based on a field<a class="headerlink" href="#split-data-into-files-based-on-a-field" title="Link to this heading">¶</a></h2>
 <p>awk has a really simple way to split data into separate files based on a field.</p>
 <p><code class="docutils literal notranslate"><span class="pre">{print</span> <span class="pre">&gt;</span> <span class="pre">$1}</span></code>, which prints the line into a file named in the first column.</p>
-<p>Here’s a more concrete example, using this techinque in conjuction with a program called <code class="docutils literal notranslate"><span class="pre">average</span></code> that, not surprisingly, computes the average of its inputs. The input is a request rate, and the date portion of a timestamp extracted from a log file:</p>
+<p>Here’s a more concrete example, using this technique in conjunction with a program called <code class="docutils literal notranslate"><span class="pre">average</span></code> that, not surprisingly, computes the average of its inputs. The input is a request rate, and the date portion of a timestamp extracted from a log file:</p>
 <p>The input date:</p>
 <div class="highlight-none notranslate"><div class="highlight"><pre><span></span>10:50:41 $ head -5 /tmp/a
  2017-11-22	17918

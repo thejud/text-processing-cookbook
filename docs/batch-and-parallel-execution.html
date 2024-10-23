@@ -68,7 +68,7 @@ command I specify as arguments.</p>
 <ul>
 <li><p><code class="docutils literal notranslate"><span class="pre">-n</span> <span class="pre">1</span></code> to only pass one argument at a time, like a for loop. Note that many
 of the common uses of xargs can also be replaced by a simple bash for loop.</p></li>
-<li><p>parameter subsitution with <code class="docutils literal notranslate"><span class="pre">-I</span> <span class="pre">%</span></code>. If I want multiple replacements, or need to an an extension, that’s a good way.</p>
+<li><p>parameter substitution with <code class="docutils literal notranslate"><span class="pre">-I</span> <span class="pre">%</span></code>. If I want multiple replacements, or need to an an extension, that’s a good way.</p>
 <p>ls -1 *.sql | xargs -n 1 -I % echo mycommand –logfile %.log %
 mycommand –logfile 201701.csv.log 201701.csv
 mycommand –logfile 201702.csv.log 201702.csv</p>
@@ -76,7 +76,7 @@ mycommand –logfile 201702.csv.log 201702.csv</p>
 <li><p>parallel execution of commands.</p></li>
 </ul>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="c1"># gzip csv files, with four parallel processes.</span>
-<span class="c1"># print lines as we execut them, and send one file</span>
+<span class="c1"># print lines as we execute them, and send one file</span>
 <span class="c1"># at a time to each invocation</span>
 
 <span class="n">ls</span> <span class="o">-</span><span class="n">t</span> <span class="o">-</span><span class="mi">1</span> <span class="o">*.</span><span class="n">csv</span> <span class="o">|</span> <span class="n">xargs</span> <span class="o">-</span><span class="n">P</span> <span class="mi">4</span> <span class="o">-</span><span class="n">t</span> <span class="o">-</span><span class="n">n</span> <span class="mi">1</span> <span class="n">gzip</span>   
@@ -108,7 +108,7 @@ without the extension, and {/.} is the basename without the extension.</p>
 </div>
 <p>See also: <a class="reference external" href="https://www.gnu.org/software/parallel/sem.html">sem</a>, part of the
 gnu parallel package, which allows you to easily limit the number of concurrent
-proceses without the complexity of parallel. Very useful for running N jobs in
+processes without the complexity of parallel. Very useful for running N jobs in
 parallel inside a simple for loop.</p>
 </section>
 </section>
